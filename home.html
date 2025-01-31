@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kurdish-Armenian-German Embassy</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <header>
+        <nav>
+            <div class="logo">
+                <img src="embassy-logo.png" alt="Embassy Logo">
+            </div>
+            <ul class="nav-links">
+                <li><a href="#home">Home</a></li>
+                <li><a href="#services">Services</a></li>
+                <li><a href="#about">About</a></li>
+                <li><a href="#contact">Contact</a></li>
+                <li><a href="login.html">Login</a></li>
+            </ul>
+            <div class="language-selector">
+                <select id="languageSelect" onchange="changeLanguage(this.value)">
+                    <option value="en">English</option>
+                    <option value="ku">Kurdish</option>
+                    <option value="hy">Armenian</option>
+                    <option value="de">German</option>
+                </select>
+            </div>
+        </nav>
+    </header>
+
+    <main>
+        <section id="hero">
+            <h1>Welcome to the Kurdish-Armenian-German Embassy</h1>
+            <p>Serving our communities and strengthening international relations</p>
+        </section>
+
+        <section id="services">
+            <h2>Our Services</h2>
+            <div class="services-grid">
+                <div class="service-card">
+                    <h3>Visa Services</h3>
+                    <p>Information and processing of visa applications</p>
+                </div>
+                <div class="service-card">
+                    <h3>Passport Services</h3>
+                    <p>Passport renewal and application assistance</p>
+                </div>
+                <div class="service-card">
+                    <h3>Cultural Exchange</h3>
+                    <p>Programs promoting cultural understanding</p>
+                </div>
+                <div class="service-card">
+                    <h3>Business Support</h3>
+                    <p>Assistance with international business relations</p>
+                </div>
+            </div>
+        </section>
+
+        <section id="contact">
+            <h2>Contact Us</h2>
+            <div class="contact-info">
+                <div>
+                    <h3>Address</h3>
+                    <p>123 Embassy Street<br>City, Country</p>
+                </div>
+                <div>
+                    <h3>Phone</h3>
+                    <p>+1 234 567 890</p>
+                </div>
+                <div>
+                    <h3>Email</h3>
+                    <p>info@kag-embassy.org</p>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <div class="footer-content">
+            <div class="footer-section">
+                <h4>Working Hours</h4>
+                <p>Monday - Friday: 9:00 - 17:00</p>
+                <p>Saturday - Sunday: Closed</p>
+            </div>
+            <div class="footer-section">
+                <h4>Emergency Contact</h4>
+                <p>24/7 Hotline: +1 234 567 999</p>
+            </div>
+            <div class="footer-section">
+                <h4>Social Media</h4>
+                <div class="social-links">
+                    <a href="#">Twitter</a>
+                    <a href="#">Facebook</a>
+                    <a href="#">LinkedIn</a>
+                </div>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>&copy; 2024 Kurdish-Armenian-German Embassy. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script src="translations.js"></script>
+    <script src="language.js"></script>
+</body>
+</html> 
