@@ -1,0 +1,17 @@
+{
+  "name": "compsec77",
+  "version": "1.0.0",
+  "description": "Group 77 for the Kurdish Armenian German Embassy hacking project",
+  "main": "auth.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "body-parser": "^1.20.3",
+    "express": "^4.21.2"
+  }
+}
