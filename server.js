@@ -1,6 +1,6 @@
 const express = require('express');
-const fs = require('fs');
 const bodyParser = require('body-parser');
+const db = require('./db');
 const app = express();
 const port = 3000;
 
@@ -8,55 +8,53 @@ const port = 3000;
 app.use(bodyParser.json());
 app.use(express.static('./')); // Serve static files from current directory
 
-// Store credentials file path
-const CREDS_FILE = 'credentials.txt';
-
-// Create credentials file if it doesn't exist
-if (!fs.existsSync(CREDS_FILE)) {
-    fs.writeFileSync(CREDS_FILE, '');
-}
-
 // Signup endpoint
-app.post('/signup', (req, res) => {
+app.post('/signup', async (req, res) => {
     const { username, password } = req.body;
     
-    // Read existing credentials
-    const credentials = fs.readFileSync(CREDS_FILE, 'utf8')
-        .split('\n')
-        .filter(line => line.length > 0)
-        .map(line => {
-            const [user] = line.split(':');
-            return user;
-        });
+    try {
+        // Check if username already exists
+        const [users] = await db.query(
+            'SELECT username FROM users WHERE username = ?', 
+            [username]
+        );
 
-    // Check if username already exists
-    if (credentials.includes(username)) {
-        return res.status(400).json({ error: 'Username already exists' });
+        if (users.length > 0) {
+            return res.status(400).json({ error: 'Username already exists' });
+        }
+
+        // Insert new user
+        await db.query(
+            'INSERT INTO users (username, password) VALUES (?, ?)',
+            [username, password]
+        );
+
+        res.json({ message: 'Signup successful' });
+    } catch (error) {
+        console.error('Signup error:', error);
+        res.status(500).json({ error: 'Error during signup' });
     }
-
-    // Append new credentials to file
-    fs.appendFileSync(CREDS_FILE, `${username}:${password}\n`);
-    res.json({ message: 'Signup successful' });
 });
 
 // Login endpoint
-app.post('/login', (req, res) => {
+app.post('/login', async (req, res) => {
     const { username, password } = req.body;
     
-    // Read and check credentials
-    const credentials = fs.readFileSync(CREDS_FILE, 'utf8')
-        .split('\n')
-        .filter(line => line.length > 0);
+    try {
+        // Check credentials
+        const [users] = await db.query(
+            'SELECT * FROM users WHERE username = ? AND password = ?',
+            [username, password]
+        );
 
-    const isValid = credentials.some(line => {
-        const [storedUser, storedPass] = line.split(':');
-        return storedUser === username && storedPass === password;
-    });
-
-    if (isValid) {
-        res.json({ success: true });
-    } else {
-        res.status(401).json({ error: 'Invalid credentials' });
+        if (users.length > 0) {
+            res.json({ success: true });
+        } else {
+            res.status(401).json({ error: 'Invalid credentials' });
+        }
+    } catch (error) {
+        console.error('Login error:', error);
+        res.status(500).json({ error: 'Error during login' });
     }
 });
 
