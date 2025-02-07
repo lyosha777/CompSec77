@@ -108,6 +108,7 @@
         fetch('/').then((response) => {
             if (!response.ok) {
                 return response.text().then((errorMsg) => {
+                    alert(`Database connection error. ${errorMsg}`);
                     document.getElementById('dbError').textContent = errorMsg;
                 });
             }
