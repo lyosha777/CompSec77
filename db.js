@@ -1,43 +1,19 @@
 const mysql = require('mysql2');
 
 const connection = mysql.createConnection({
-    host: 'localhost',
-    user: 'root',     // your MySQL username
-    password: '',     // your MySQL password
+    host: '10.1.2.62',     // e.g., 'localhost' or IP address
+    user: 'admin', // e.g., 'root'
+    password: '', // your database password
+    database: 'embassy_db'    // your new database name
 });
 
-// Create database and tables in sequence
-connection.query('CREATE DATABASE IF NOT EXISTS embassy_db', (err) => {
+// Test the connection
+connection.connect((err) => {
     if (err) {
-        console.error('Error creating database:', err);
+        console.error('Error connecting to database:', err);
         return;
     }
-    
-    // Use the database
-    connection.query('USE embassy_db', (err) => {
-        if (err) {
-            console.error('Error using database:', err);
-            return;
-        }
-
-        // Create users table
-        const createTableQuery = `
-            CREATE TABLE IF NOT EXISTS users (
-                id INT AUTO_INCREMENT PRIMARY KEY,
-                username VARCHAR(255) UNIQUE NOT NULL,
-                password VARCHAR(255) NOT NULL,
-                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-            )
-        `;
-
-        connection.query(createTableQuery, (err) => {
-            if (err) {
-                console.error('Error creating table:', err);
-                return;
-            }
-            console.log('Database and tables created successfully');
-        });
-    });
+    console.log('Connected to database successfully');
 });
 
 module.exports = connection.promise(); 
