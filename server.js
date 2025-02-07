@@ -8,6 +8,15 @@ const port = 3000;
 app.use(bodyParser.json());
 app.use(express.static('./')); // Serve static files from current directory
 
+// Database error handling middleware
+app.use((err, req, res, next) => {
+    if (err.code === 'ECONNREFUSED') {
+        console.error('Database connection was refused');
+        return res.status(500).send(`Database connection error. Code: ${err.code}, Message: ${err.message}`);
+    }
+    next(err);
+});
+
 // Signup endpoint
 app.post('/signup', async (req, res) => {
     const { username, password } = req.body;

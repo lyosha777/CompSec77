@@ -73,6 +73,8 @@
         </section>
     </main>
 
+    <div id="dbError" style="color: red;"></div>
+
     <footer>
         <div class="footer-content">
             <div class="footer-section">
@@ -101,5 +103,15 @@
     <script src="translations.js"></script>
     <script src="language.js"></script>
     <script src="auth.js"></script>
+    <script>
+        // Check for database connection error
+        fetch('/').then((response) => {
+            if (!response.ok) {
+                return response.text().then((errorMsg) => {
+                    document.getElementById('dbError').textContent = errorMsg;
+                });
+            }
+        });
+    </script>
 </body>
 </html> 
