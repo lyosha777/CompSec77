@@ -1,7 +1,7 @@
 const mysql = require('mysql2');
 
 const connection = mysql.createConnection({
-    host: '10.1.2.62',     // e.g., 'localhost' or IP address
+    host: process.env.DB_HOST || '10.1.2.62',  // fallback to IP if env not set
     user: 'admin', // e.g., 'root'
     password: '', // your database password
     database: 'embassy_db'    // your new database name
