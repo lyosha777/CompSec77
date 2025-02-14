@@ -14,7 +14,6 @@
                 <li><a href="#services">Services</a></li>
                 <li><a href="#about">About</a></li>
                 <li><a href="#contact">Contact</a></li>
-                <li id="loginLink"><a href="#login">Login</a></li>
             </ul>
             <select id="language-select">
                 <option value="en">English</option>
@@ -39,87 +38,12 @@
         <section id="contact">
             <!-- Add content for the contact section -->
         </section>
-
-        <section id="login">
-            <div class="auth-container">
-                <div class="auth-tabs">
-                    <button class="auth-tab active" onclick="showTab('login')">Login</button>
-                    <button class="auth-tab" onclick="showTab('signup')">Sign Up</button>
-                </div>
-                
-                <!-- Login Form -->
-                <form id="loginForm" onsubmit="authenticate(event)">
-                    <h2>Login</h2>
-                    <div>
-                        <label for="loginUsername">Username:</label>
-                        <input type="text" id="loginUsername" name="username" required>
-                    </div>
-                    <div>
-                        <label for="loginPassword">Password:</label>
-                        <input type="password" id="loginPassword" name="password" required>
-                    </div>
-                    <button type="submit">Login</button>
-                    <button type="button" onclick="showForgotPassword()">Forgot Password</button>
-                </form>
-
-                <!-- Signup Form -->
-                <form id="signupForm" onsubmit="signup(event)" style="display: none;">
-                    <h2>Sign Up</h2>
-                    <div>
-                        <label for="signupUsername">Username:</label>
-                        <input type="text" id="signupUsername" name="username" required>
-                    </div>
-                    <div>
-                        <label for="signupPassword">Password:</label>
-                        <input type="password" id="signupPassword" name="password" required>
-                    </div>
-                    <div>
-                        <label for="confirmPassword">Confirm Password:</label>
-                        <input type="password" id="confirmPassword" name="confirmPassword" required>
-                    </div>
-                    <div>
-                        <label for="securityQuestion">Security Question:</label>
-                        <select id="securityQuestion" name="securityQuestion" required>
-                            <option value="">Select a question</option>
-                            <option value="What is your mother's maiden name?">What is your mother's maiden name?</option>
-                            <option value="What is the name of your first pet?">What is the name of your first pet?</option>
-                            <option value="What is your favorite color?">What is your favorite color?</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label for="securityAnswer">Security Answer:</label>
-                        <input type="text" id="securityAnswer" name="securityAnswer" required>
-                    </div>
-                    <button type="submit">Sign Up</button>
-                </form>
-            </div>
-        </section>
     </main>
-
-    <div id="dbError" style="color: red;"></div>
 
     <footer>
         <!-- Add your footer content here -->
     </footer>
 
     <script src="auth.js"></script>
-    <script>
-        // Check if the user is authenticated
-        function checkAuthentication() {
-            // Implement your authentication check logic here
-            // For example, you can check if a token exists in local storage
-            const isAuthenticated = localStorage.getItem('token') !== null;
-
-            const loginLink = document.getElementById('loginLink');
-            if (isAuthenticated) {
-                loginLink.style.display = 'none';
-            } else {
-                loginLink.style.display = 'block';
-            }
-        }
-
-        // Call the checkAuthentication function when the page loads
-        window.onload = checkAuthentication;
-    </script>
 </body>
 </html>
