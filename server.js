@@ -19,10 +19,9 @@ app.use((err, req, res, next) => {
 
 // Signup endpoint
 app.post('/signup', async (req, res) => {
-    const { username, password } = req.body;
+    const { username, password, securityQuestion, securityAnswer } = req.body;
     
     try {
-        // Check if username already exists
         const [users] = await db.query(
             'SELECT username FROM users WHERE username = ?', 
             [username]
@@ -32,10 +31,9 @@ app.post('/signup', async (req, res) => {
             return res.status(400).json({ error: 'Username already exists' });
         }
 
-        // Insert new user
         await db.query(
-            'INSERT INTO users (username, password) VALUES (?, ?)',
-            [username, password]
+            'INSERT INTO users (username, password, security_question, security_answer) VALUES (?, ?, ?, ?)',
+            [username, password, securityQuestion, securityAnswer]
         );
 
         res.json({ message: 'Signup successful' });

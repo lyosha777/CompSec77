@@ -27,24 +27,16 @@
             <!-- Add content for the home section -->
         </section>
 
-                <!-- Signup Form -->
-                <form id="signupForm" onsubmit="signup(event)" style="display: none;">
-                    <h2>Sign Up</h2>
-                    <div>
-                        <label for="signupUsername">Username:</label>
-                        <input type="text" id="signupUsername" name="username" required>
-                    </div>
-                    <div>
-                        <label for="signupPassword">Password:</label>
-                        <input type="password" id="signupPassword" name="password" required>
-                    </div>
-                    <div>
-                        <label for="confirmPassword">Confirm Password:</label>
-                        <input type="password" id="confirmPassword" name="confirmPassword" required>
-                    </div>
-                    <button type="submit">Sign Up</button>
-                </form>
-            </div>
+        <section id="services">
+            <!-- Add content for the services section -->
+        </section>
+
+        <section id="about">
+            <!-- Add content for the about section -->
+        </section>
+
+        <section id="contact">
+            <!-- Add content for the contact section -->
         </section>
     </main>
 
@@ -56,12 +48,8 @@
     <script>
         // Check if the user is authenticated
         function checkAuthentication() {
-            // Implement your authentication check logic here
-            // For example, you can check if a token exists in local storage
-            const isAuthenticated = localStorage.getItem('token') !== null;
-
+            const isAuthenticated = localStorage.getItem('isAuthenticated') === 'true';
             if (!isAuthenticated) {
-                // Redirect to the login page if the user is not authenticated
                 window.location.href = 'login.html';
             }
         }

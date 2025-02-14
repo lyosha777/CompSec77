@@ -24,9 +24,12 @@ function authenticate(event) {
     const username = document.getElementById('loginUsername').value;
     const password = document.getElementById('loginPassword').value;
     
-    // Perform authentication logic here
+    // Perform authentication logic here (e.g., check against a predefined username and password)
     if (username === 'admin' && password === 'password') {
+        // Store the authentication state in local storage or session storage
         localStorage.setItem('isAuthenticated', 'true');
+        
+        // Redirect to the main page after successful login
         window.location.href = 'index.html';
     } else {
         alert('Invalid username or password');
@@ -48,7 +51,8 @@ function signup(event) {
         return;
     }
     
-    // Store signup information (simplified for demo)
+    // Perform signup logic here (e.g., store user information in a database)
+    // For simplicity, let's assume the signup is successful
     alert('Sign up successful! Please log in.');
     showTab('login');
 }
