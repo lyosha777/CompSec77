@@ -17,26 +17,32 @@ function showTab(tabName) {
     }
 }
 
-// Function to handle login
+// Function to handle authentication
 async function authenticate(event) {
     event.preventDefault();
     
     const username = document.getElementById('loginUsername').value;
     const password = document.getElementById('loginPassword').value;
-
+    
     try {
-        const response = await fetch('/login', {
+        const response = await fetch('/api/login', {
             method: 'POST',
             headers: {
-                'Content-Type': 'application/json',
+                'Content-Type': 'application/json'
             },
             body: JSON.stringify({ username, password })
         });
-
+        
+        const data = await response.json();
+        
         if (response.ok) {
-            window.location.href = 'home.html';
+            // Store the authentication token in local storage
+            localStorage.setItem('token', data.token);
+            
+            // Redirect to the main page after successful login
+            window.location.href = 'index.html';
         } else {
-            alert('Invalid credentials. Please try again.');
+            alert(data.error || 'Invalid username or password');
         }
     } catch (error) {
         alert('Error during login. Please try again.');
@@ -52,26 +58,26 @@ async function signup(event) {
     const confirmPassword = document.getElementById('confirmPassword').value;
     const securityQuestion = document.getElementById('securityQuestion').value;
     const securityAnswer = document.getElementById('securityAnswer').value;
-
+    
     if (password !== confirmPassword) {
-        alert('Passwords do not match!');
+        alert('Passwords do not match');
         return;
     }
-
+    
     try {
-        const response = await fetch('/signup', {
+        const response = await fetch('/api/signup', {
             method: 'POST',
             headers: {
-                'Content-Type': 'application/json',
+                'Content-Type': 'application/json'
             },
             body: JSON.stringify({ username, password, securityQuestion, securityAnswer })
         });
-
+        
         const data = await response.json();
-
+        
         if (response.ok) {
             alert('Sign up successful! Please log in.');
-            window.location.href = 'index.html';
+            showTab('login');
         } else {
             alert(data.error || 'Error during signup. Please try again.');
         }
