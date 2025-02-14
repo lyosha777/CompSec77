@@ -71,7 +71,7 @@ async function signup(event) {
 
         if (response.ok) {
             alert('Sign up successful! Please log in.');
-            showTab('login');
+            window.location.href = 'index.html';
         } else {
             alert(data.error || 'Error during signup. Please try again.');
         }

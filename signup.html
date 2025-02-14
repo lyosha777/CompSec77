@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sign Up - Embassy</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <header>
+        <!-- Add your header content here -->
+    </header>
+
+    <main>
+        <section id="signup">
+            <div class="auth-container">
+                <h2>Sign Up</h2>
+                <form id="signupForm" onsubmit="signup(event)">
+                    <div>
+                        <label for="signupUsername">Username:</label>
+                        <input type="text" id="signupUsername" name="username" required>
+                    </div>
+                    <div>
+                        <label for="signupPassword">Password:</label>
+                        <input type="password" id="signupPassword" name="password" required>
+                    </div>
+                    <div>
+                        <label for="confirmPassword">Confirm Password:</label>
+                        <input type="password" id="confirmPassword" name="confirmPassword" required>
+                    </div>
+                    <div>
+                        <label for="securityQuestion">Security Question:</label>
+                        <select id="securityQuestion" name="securityQuestion" required>
+                            <option value="">Select a question</option>
+                            <option value="What is your mother's maiden name?">What is your mother's maiden name?</option>
+                            <option value="What is the name of your first pet?">What is the name of your first pet?</option>
+                            <option value="What is your favorite color?">What is your favorite color?</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label for="securityAnswer">Security Answer:</label>
+                        <input type="text" id="securityAnswer" name="securityAnswer" required>
+                    </div>
+                    <button type="submit">Sign Up</button>
+                </form>
+                <p>Already have an account? <a href="index.html">Login here</a></p>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <!-- Add your footer content here -->
+    </footer>
+
+    <script src="auth.js"></script>
+</body>
+</html>
