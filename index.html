@@ -3,34 +3,43 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login - Kurdish-Armenian-German Embassy</title>
+    <title>Embassy Website</title>
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
     <header>
         <nav>
-            <div class="logo">
-                <img src="KAGFlag.jpg" alt="Kurdish-Armenian-German Embassy Flag">
-            </div>
-            <ul class="nav-links">
-                <li><a href="index.html#home">Home</a></li>
-                <li><a href="index.html#services">Services</a></li>
-                <li><a href="index.html#about">About</a></li>
-                <li><a href="index.html#contact">Contact</a></li>
-                <li><a href="login.html">Login</a></li>
+            <ul>
+                <li><a href="#home">Home</a></li>
+                <li><a href="#services">Services</a></li>
+                <li><a href="#about">About</a></li>
+                <li><a href="#contact">Contact</a></li>
+                <li><a href="#login">Login</a></li>
             </ul>
-            <div class="language-selector">
-                <select id="languageSelect" onchange="changeLanguage(this.value)">
-                    <option value="en">English</option>
-                    <option value="ku">Kurdish</option>
-                    <option value="hy">Armenian</option>
-                    <option value="de">German</option>
-                </select>
-            </div>
+            <select id="language-select">
+                <option value="en">English</option>
+                <!-- Add more language options as needed -->
+            </select>
         </nav>
     </header>
 
     <main>
+        <section id="home">
+            <!-- Add content for the home section -->
+        </section>
+
+        <section id="services">
+            <!-- Add content for the services section -->
+        </section>
+
+        <section id="about">
+            <!-- Add content for the about section -->
+        </section>
+
+        <section id="contact">
+            <!-- Add content for the contact section -->
+        </section>
+
         <section id="login">
             <div class="auth-container">
                 <div class="auth-tabs">
@@ -51,22 +60,6 @@
                     </div>
                     <button type="submit">Login</button>
                     <button type="button" onclick="showForgotPassword()">Forgot Password</button>
-                </form>
-                <p>Don't have an account? <a href="signup.html">Sign up here</a></p>
-
-                <!-- Forgot Password Form -->
-                <form id="forgotPasswordForm" onsubmit="recoverPassword(event)" style="display: none;">
-                    <h2>Forgot Password</h2>
-                    <div>
-                        <label for="forgotUsername">Username:</label>
-                        <input type="text" id="forgotUsername" name="username" required>
-                    </div>
-                    <div>
-                        <label for="forgotSecurityAnswer">Security Answer:</label>
-                        <input type="text" id="forgotSecurityAnswer" name="securityAnswer" required>
-                    </div>
-                    <button type="submit">Recover Password</button>
-                    <button type="button" onclick="showTab('login')">Back to Login</button>
                 </form>
 
                 <!-- Signup Form -->
@@ -106,43 +99,9 @@
     <div id="dbError" style="color: red;"></div>
 
     <footer>
-        <div class="footer-content">
-            <div class="footer-section">
-                <h4>Working Hours</h4>
-                <p>Monday - Friday: 9:00 - 17:00</p>
-                <p>Saturday - Sunday: Closed</p>
-            </div>
-            <div class="footer-section">
-                <h4>Emergency Contact</h4>
-                <p>24/7 Hotline: +1 234 567 999</p>
-            </div>
-            <div class="footer-section">
-                <h4>Social Media</h4>
-                <div class="social-links">
-                    <a href="#">Twitter</a>
-                    <a href="#">Facebook</a>
-                    <a href="#">LinkedIn</a>
-                </div>
-            </div>
-        </div>
-        <div class="footer-bottom">
-            <p>&copy; 2024 Kurdish-Armenian-German Embassy. All rights reserved.</p>
-        </div>
+        <!-- Add your footer content here -->
     </footer>
 
-    <script src="translations.js"></script>
-    <script src="language.js"></script>
     <script src="auth.js"></script>
-    <script>
-        // Check for database connection error
-        fetch('/').then((response) => {
-            if (!response.ok) {
-                return response.text().then((errorMsg) => {
-                    alert(`Database connection error. ${errorMsg}`);
-                    document.getElementById('dbError').textContent = errorMsg;
-                });
-            }
-        });
-    </script>
 </body>
-</html> 
+</html>
