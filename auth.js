@@ -25,21 +25,33 @@ function showTab(tabName) {
 }
 
 // Function to handle authentication
-function authenticate(event) {
+async function authenticate(event) {
     event.preventDefault();
     
     const username = document.getElementById('loginUsername').value;
     const password = document.getElementById('loginPassword').value;
     
-    // Perform authentication logic here (e.g., check against a predefined username and password)
-    if (username === 'admin' && password === 'password') {
-        // Store the authentication state in local storage or session storage
-        localStorage.setItem('isAuthenticated', 'true');
-        
-        // Redirect to the main page after successful login
-        window.location.href = 'index.html';
-    } else {
-        alert('Invalid username or password');
+    try {
+        const response = await fetch('/login', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ username, password })
+        });
+
+        const data = await response.json();
+
+        if (response.ok) {
+            // Store the authentication state
+            localStorage.setItem('isAuthenticated', 'true');
+            // Redirect to the main page after successful login
+            window.location.href = 'index.html';
+        } else {
+            alert(data.error || 'Invalid username or password');
+        }
+    } catch (error) {
+        alert('Error during login. Please try again.');
     }
 }
 
