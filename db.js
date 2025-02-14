@@ -1,19 +1,22 @@
-const mysql = require('mysql2');
+const mysql = require('mysql2/promise');
 
-const connection = mysql.createConnection({
-    host: process.env.DB_HOST || '10.1.2.62',  // fallback to IP if env not set
-    user: 'admin', // e.g., 'root'
-    password: '', // your database password
-    database: 'embassy_db'    // your new database name
+const pool = mysql.createPool({
+    host: 'localhost',
+    user: 'root',
+    database: 'test_db',
+    waitForConnections: true,
+    connectionLimit: 10,
+    queueLimit: 0
 });
 
 // Test the connection
-connection.connect((err) => {
-    if (err) {
-        console.error('Error connecting to database:', err);
-        return;
-    }
-    console.log('Connected to database successfully');
-});
+pool.getConnection()
+    .then(connection => {
+        console.log('Database connected successfully');
+        connection.release();
+    })
+    .catch(err => {
+        console.log('Error connecting to database:', err);
+    });
 
-module.exports = connection; 
+module.exports = pool; 

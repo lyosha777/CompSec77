@@ -7,6 +7,13 @@
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
+    <script>
+        // Check authentication before loading page
+        if (!localStorage.getItem('isAuthenticated')) {
+            window.location.href = 'login.html';
+        }
+    </script>
+
     <header>
         <nav>
             <ul>
@@ -14,25 +21,80 @@
                 <li><a href="#services">Services</a></li>
                 <li><a href="#about">About</a></li>
                 <li><a href="#contact">Contact</a></li>
+                <li><a href="#" onclick="logout()">Logout</a></li>
             </ul>
             <select id="language-select">
                 <option value="en">English</option>
-                <!-- Add more language options as needed -->
+                <option value="ku">Kurdish</option>
+                <option value="hy">Armenian</option>
+                <option value="de">German</option>
             </select>
         </nav>
     </header>
 
     <main>
         <section id="home">
-            <!-- Add content for the home section -->
+            <div class="hero">
+                <h1>Welcome to the Kurdish-Armenian-German Embassy</h1>
+                <p>Serving our communities and strengthening international relations</p>
+            </div>
+            <div class="announcements">
+                <h2>Latest Announcements</h2>
+                <div class="announcement-card">
+                    <h3>Holiday Schedule</h3>
+                    <p>The embassy will be closed during national holidays. Please check our calendar for specific dates.</p>
+                </div>
+                <div class="announcement-card">
+                    <h3>Visa Processing Updates</h3>
+                    <p>New visa processing procedures are now in effect. Applications are processed within 5-7 business days.</p>
+                </div>
+            </div>
         </section>
 
         <section id="services">
-            <!-- Add content for the services section -->
+            <h2>Our Services</h2>
+            <div class="services-grid">
+                <div class="service-card">
+                    <img src="visa-icon.png" alt="Visa Services">
+                    <h3>Visa Services</h3>
+                    <p>Tourist, business, and student visa processing</p>
+                    <a href="#" class="btn">Learn More</a>
+                </div>
+                <div class="service-card">
+                    <img src="passport-icon.png" alt="Passport Services">
+                    <h3>Passport Services</h3>
+                    <p>Passport renewal and emergency travel documents</p>
+                    <a href="#" class="btn">Learn More</a>
+                </div>
+                <div class="service-card">
+                    <img src="document-icon.png" alt="Document Services">
+                    <h3>Document Authentication</h3>
+                    <p>Legal document verification and certification</p>
+                    <a href="#" class="btn">Learn More</a>
+                </div>
+            </div>
         </section>
 
         <section id="about">
-            <!-- Add content for the about section -->
+            <div class="about-container">
+                <h2>About Our Embassy</h2>
+                <div class="mission-statement">
+                    <h3>Our Mission</h3>
+                    <p>To foster cultural understanding and strengthen diplomatic relations between Kurdistan, Armenia, and Germany while serving our citizens abroad.</p>
+                </div>
+                <div class="embassy-info">
+                    <div class="info-card">
+                        <h3>Working Hours</h3>
+                        <p>Monday - Friday: 9:00 AM - 5:00 PM</p>
+                        <p>Saturday - Sunday: Closed</p>
+                    </div>
+                    <div class="info-card">
+                        <h3>Contact Information</h3>
+                        <p>Emergency: +1 234 567 999</p>
+                        <p>Email: info@embassy.org</p>
+                    </div>
+                </div>
+            </div>
         </section>
 
         <section id="contact">
@@ -41,21 +103,34 @@
     </main>
 
     <footer>
-        <!-- Add your footer content here -->
+        <div class="footer-content">
+            <div class="footer-section">
+                <h4>Contact Us</h4>
+                <p>Email: info@embassy.org</p>
+                <p>Phone: +1 234 567 890</p>
+            </div>
+            <div class="footer-section">
+                <h4>Quick Links</h4>
+                <ul>
+                    <li><a href="#home">Home</a></li>
+                    <li><a href="#services">Services</a></li>
+                    <li><a href="#about">About</a></li>
+                </ul>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>&copy; 2024 Kurdish-Armenian-German Embassy. All rights reserved.</p>
+        </div>
     </footer>
 
     <script src="auth.js"></script>
+    <script src="translations.js"></script>
+    <script src="language.js"></script>
     <script>
-        // Check if the user is authenticated
-        function checkAuthentication() {
-            const isAuthenticated = localStorage.getItem('isAuthenticated') === 'true';
-            if (!isAuthenticated) {
-                window.location.href = 'login.html';
-            }
+        // Check authentication before loading page
+        if (!localStorage.getItem('isAuthenticated')) {
+            window.location.href = 'login.html';
         }
-
-        // Call the checkAuthentication function when the page loads
-        window.onload = checkAuthentication;
     </script>
 </body>
 </html>

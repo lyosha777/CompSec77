@@ -1,12 +1,48 @@
 const express = require('express');
 const bodyParser = require('body-parser');
+const path = require('path');
+const session = require('express-session');
 const db = require('./db');
 const app = express();
 const port = 3000;
 
+// Add session middleware before other middleware
+app.use(session({
+    secret: 'your-secret-key',
+    resave: false,
+    saveUninitialized: true,
+    cookie: { secure: false } // set to true if using https
+}));
+
 // Middleware
 app.use(bodyParser.json());
-app.use(express.static('./')); // Serve static files from current directory
+
+// Serve login page as the default route
+app.get('/', (req, res) => {
+    res.sendFile(path.join(__dirname, 'login.html'));
+});
+
+// Authentication middleware
+const authCheck = (req, res, next) => {
+    // Allow access to login-related files
+    const publicPaths = ['/login.html', '/auth.js', '/styles.css', '/translations.js', '/language.js'];
+    if (publicPaths.includes(req.path) || req.path.startsWith('/login') || req.path.startsWith('/signup')) {
+        return next();
+    }
+    
+    // Check for authentication
+    const isAuthenticated = req.session && req.session.isAuthenticated;
+    if (!isAuthenticated) {
+        return res.redirect('/login.html');
+    }
+    next();
+};
+
+// Apply auth check to all routes except login
+app.use(authCheck);
+
+// Serve static files after auth check
+app.use(express.static(__dirname));
 
 // Database error handling middleware
 app.use((err, req, res, next) => {
@@ -22,7 +58,8 @@ app.post('/signup', async (req, res) => {
     const { username, password, securityQuestion, securityAnswer } = req.body;
     
     try {
-        const [users] = await db.query(
+        // Check if username exists
+        const [users] = await db.execute(
             'SELECT username FROM users WHERE username = ?', 
             [username]
         );
@@ -31,7 +68,8 @@ app.post('/signup', async (req, res) => {
             return res.status(400).json({ error: 'Username already exists' });
         }
 
-        await db.query(
+        // Insert new user
+        await db.execute(
             'INSERT INTO users (username, password, security_question, security_answer) VALUES (?, ?, ?, ?)',
             [username, password, securityQuestion, securityAnswer]
         );
@@ -46,16 +84,22 @@ app.post('/signup', async (req, res) => {
 // Login endpoint
 app.post('/login', async (req, res) => {
     const { username, password } = req.body;
+    console.log('Login attempt:', username);
     
     try {
-        // Check credentials
-        const [users] = await db.query(
+        const [users] = await db.execute(
             'SELECT * FROM users WHERE username = ? AND password = ?',
             [username, password]
         );
 
         if (users.length > 0) {
-            res.json({ success: true });
+            const token = Math.random().toString(36).substring(7);
+            req.session.isAuthenticated = true;
+            res.json({ 
+                success: true, 
+                token: token,
+                message: 'Login successful'
+            });
         } else {
             res.status(401).json({ error: 'Invalid credentials' });
         }
@@ -68,10 +112,9 @@ app.post('/login', async (req, res) => {
 // Password recovery endpoint
 app.post('/recover-password', async (req, res) => {
     const { username, securityAnswer } = req.body;
-
+    
     try {
-        // Check if username and security answer match
-        const [users] = await db.query(
+        const [users] = await db.execute(
             'SELECT password FROM users WHERE username = ? AND security_answer = ?',
             [username, securityAnswer]
         );
@@ -82,7 +125,7 @@ app.post('/recover-password', async (req, res) => {
             res.status(401).json({ error: 'Invalid username or security answer' });
         }
     } catch (error) {
-        console.error('Password recovery error:', error);
+        console.error('Recovery error:', error);
         res.status(500).json({ error: 'Error during password recovery' });
     }
 });
