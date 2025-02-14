@@ -50,6 +50,22 @@
                         <input type="password" id="loginPassword" name="password" required>
                     </div>
                     <button type="submit">Login</button>
+                    <button type="button" onclick="showForgotPassword()">Forgot Password</button>
+                </form>
+
+                <!-- Forgot Password Form -->
+                <form id="forgotPasswordForm" onsubmit="recoverPassword(event)" style="display: none;">
+                    <h2>Forgot Password</h2>
+                    <div>
+                        <label for="forgotUsername">Username:</label>
+                        <input type="text" id="forgotUsername" name="username" required>
+                    </div>
+                    <div>
+                        <label for="forgotSecurityAnswer">Security Answer:</label>
+                        <input type="text" id="forgotSecurityAnswer" name="securityAnswer" required>
+                    </div>
+                    <button type="submit">Recover Password</button>
+                    <button type="button" onclick="showTab('login')">Back to Login</button>
                 </form>
 
                 <!-- Signup Form -->

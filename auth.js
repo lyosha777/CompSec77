@@ -85,4 +85,42 @@ function saveToFile(username, password) {
     // Note: This would normally require server-side implementation
     // For now, we'll just log to console
     console.log(`New user registered: ${username}`);
+}
+
+// Function to show/hide forgot password form
+function showForgotPassword() {
+    const loginForm = document.getElementById('loginForm');
+    const forgotPasswordForm = document.getElementById('forgotPasswordForm');
+
+    loginForm.style.display = 'none';
+    forgotPasswordForm.style.display = 'block';
+}
+
+// Function to handle password recovery
+async function recoverPassword(event) {
+    event.preventDefault();
+
+    const username = document.getElementById('forgotUsername').value;
+    const securityAnswer = document.getElementById('forgotSecurityAnswer').value;
+
+    try {
+        const response = await fetch('/recover-password', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ username, securityAnswer })
+        });
+
+        const data = await response.json();
+
+        if (response.ok) {
+            alert(`Your password is: ${data.password}`);
+            showTab('login');
+        } else {
+            alert(data.error || 'Error during password recovery. Please try again.');
+        }
+    } catch (error) {
+        alert('Error during password recovery. Please try again.');
+    }
 } 

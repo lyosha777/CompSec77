@@ -67,6 +67,28 @@ app.post('/login', async (req, res) => {
     }
 });
 
+// Password recovery endpoint
+app.post('/recover-password', async (req, res) => {
+    const { username, securityAnswer } = req.body;
+
+    try {
+        // Check if username and security answer match
+        const [users] = await db.query(
+            'SELECT password FROM users WHERE username = ? AND security_answer = ?',
+            [username, securityAnswer]
+        );
+
+        if (users.length > 0) {
+            res.json({ password: users[0].password });
+        } else {
+            res.status(401).json({ error: 'Invalid username or security answer' });
+        }
+    } catch (error) {
+        console.error('Password recovery error:', error);
+        res.status(500).json({ error: 'Error during password recovery' });
+    }
+});
+
 // Listen on all network interfaces
 app.listen(port, '0.0.0.0', () => {
     console.log(`Server running at http://0.0.0.0:${port}`);
