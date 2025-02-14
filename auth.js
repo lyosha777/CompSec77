@@ -50,6 +50,8 @@ async function signup(event) {
     const username = document.getElementById('signupUsername').value;
     const password = document.getElementById('signupPassword').value;
     const confirmPassword = document.getElementById('confirmPassword').value;
+    const securityQuestion = document.getElementById('securityQuestion').value;
+    const securityAnswer = document.getElementById('securityAnswer').value;
 
     if (password !== confirmPassword) {
         alert('Passwords do not match!');
@@ -62,7 +64,7 @@ async function signup(event) {
             headers: {
                 'Content-Type': 'application/json',
             },
-            body: JSON.stringify({ username, password })
+            body: JSON.stringify({ username, password, securityQuestion, securityAnswer })
         });
 
         const data = await response.json();
