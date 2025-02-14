@@ -1,4 +1,4 @@
-const mysql = require('mysql2');
+const mysql = require('mysql2/promise');
 
 const connection = mysql.createConnection({
     host: process.env.DB_HOST || '10.1.2.62',  // fallback to IP if env not set
@@ -18,4 +18,4 @@ connection.connect((err) => {
     console.log('Connected to database successfully');
 });
 
-module.exports = connection.promise(); 
+module.exports = connection; 

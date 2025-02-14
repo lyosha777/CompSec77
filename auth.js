@@ -43,9 +43,9 @@ async function authenticate(event) {
         const data = await response.json();
 
         if (response.ok) {
-            // Store the authentication state
+            // Store both isAuthenticated and token
             localStorage.setItem('isAuthenticated', 'true');
-            // Redirect to the main page after successful login
+            localStorage.setItem('token', 'true'); // or data.token if you implement token-based auth
             window.location.href = 'index.html';
         } else {
             alert(data.error || 'Invalid username or password');
@@ -56,7 +56,7 @@ async function authenticate(event) {
 }
 
 // Function to handle signup
-function signup(event) {
+async function signup(event) {
     event.preventDefault();
     
     const username = document.getElementById('signupUsername').value;
@@ -70,10 +70,31 @@ function signup(event) {
         return;
     }
     
-    // Perform signup logic here (e.g., store user information in a database)
-    // For simplicity, let's assume the signup is successful
-    alert('Sign up successful! Please log in.');
-    showTab('login');
+    try {
+        const response = await fetch('/signup', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                username,
+                password,
+                securityQuestion,
+                securityAnswer
+            })
+        });
+
+        const data = await response.json();
+
+        if (response.ok) {
+            alert('Sign up successful! Please log in.');
+            showTab('login');
+        } else {
+            alert(data.error || 'Error during signup');
+        }
+    } catch (error) {
+        alert('Error during signup. Please try again.');
+    }
 }
 
 // Function to handle forgot password
