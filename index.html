@@ -27,16 +27,24 @@
             <!-- Add content for the home section -->
         </section>
 
-        <section id="services">
-            <!-- Add content for the services section -->
-        </section>
-
-        <section id="about">
-            <!-- Add content for the about section -->
-        </section>
-
-        <section id="contact">
-            <!-- Add content for the contact section -->
+                <!-- Signup Form -->
+                <form id="signupForm" onsubmit="signup(event)" style="display: none;">
+                    <h2>Sign Up</h2>
+                    <div>
+                        <label for="signupUsername">Username:</label>
+                        <input type="text" id="signupUsername" name="username" required>
+                    </div>
+                    <div>
+                        <label for="signupPassword">Password:</label>
+                        <input type="password" id="signupPassword" name="password" required>
+                    </div>
+                    <div>
+                        <label for="confirmPassword">Confirm Password:</label>
+                        <input type="password" id="confirmPassword" name="confirmPassword" required>
+                    </div>
+                    <button type="submit">Sign Up</button>
+                </form>
+            </div>
         </section>
     </main>
 

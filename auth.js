@@ -2,61 +2,39 @@
 function showTab(tabName) {
     const loginForm = document.getElementById('loginForm');
     const signupForm = document.getElementById('signupForm');
-    const forgotPasswordForm = document.getElementById('forgotPasswordForm');
     const tabs = document.querySelectorAll('.auth-tab');
     
     if (tabName === 'login') {
         loginForm.style.display = 'block';
         signupForm.style.display = 'none';
-        forgotPasswordForm.style.display = 'none';
         tabs[0].classList.add('active');
         tabs[1].classList.remove('active');
-    } else if (tabName === 'signup') {
+    } else {
         loginForm.style.display = 'none';
         signupForm.style.display = 'block';
-        forgotPasswordForm.style.display = 'none';
         tabs[0].classList.remove('active');
         tabs[1].classList.add('active');
-    } else if (tabName === 'forgotPassword') {
-        loginForm.style.display = 'none';
-        signupForm.style.display = 'none';
-        forgotPasswordForm.style.display = 'block';
     }
 }
 
 // Function to handle authentication
-async function authenticate(event) {
+function authenticate(event) {
     event.preventDefault();
     
     const username = document.getElementById('loginUsername').value;
     const password = document.getElementById('loginPassword').value;
     
-    try {
-        const response = await fetch('/login', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({ username, password })
-        });
-
-        const data = await response.json();
-
-        if (response.ok) {
-            // Store both isAuthenticated and token
-            localStorage.setItem('isAuthenticated', 'true');
-            localStorage.setItem('token', 'true'); // or data.token if you implement token-based auth
-            window.location.href = 'index.html';
-        } else {
-            alert(data.error || 'Invalid username or password');
-        }
-    } catch (error) {
-        alert('Error during login. Please try again.');
+    // Perform authentication logic here
+    if (username === 'admin' && password === 'password') {
+        localStorage.setItem('isAuthenticated', 'true');
+        window.location.href = 'index.html';
+    } else {
+        alert('Invalid username or password');
     }
 }
 
 // Function to handle signup
-async function signup(event) {
+function signup(event) {
     event.preventDefault();
     
     const username = document.getElementById('signupUsername').value;
@@ -70,89 +48,7 @@ async function signup(event) {
         return;
     }
     
-    try {
-        const response = await fetch('/signup', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                username,
-                password,
-                securityQuestion,
-                securityAnswer
-            })
-        });
-
-        const data = await response.json();
-
-        if (response.ok) {
-            alert('Sign up successful! Please log in.');
-            showTab('login');
-        } else {
-            alert(data.error || 'Error during signup');
-        }
-    } catch (error) {
-        alert('Error during signup. Please try again.');
-    }
-}
-
-// Function to handle forgot password
-function forgotPassword(event) {
-    event.preventDefault();
-    
-    const username = document.getElementById('forgotUsername').value;
-    const securityAnswer = document.getElementById('forgotSecurityAnswer').value;
-    
-    // Perform forgot password logic here (e.g., check security answer and retrieve password)
-    // For simplicity, let's assume the security answer is correct and the password is retrieved
-    const password = 'retrievedPassword';
-    
-    alert(`Your password is: ${password}`);
+    // Store signup information (simplified for demo)
+    alert('Sign up successful! Please log in.');
     showTab('login');
 }
-
-// Function to save credentials to file (this is a placeholder)
-function saveToFile(username, password) {
-    // Note: This would normally require server-side implementation
-    // For now, we'll just log to console
-    console.log(`New user registered: ${username}`);
-}
-
-// Function to show/hide forgot password form
-function showForgotPassword() {
-    const loginForm = document.getElementById('loginForm');
-    const forgotPasswordForm = document.getElementById('forgotPasswordForm');
-
-    loginForm.style.display = 'none';
-    forgotPasswordForm.style.display = 'block';
-}
-
-// Function to handle password recovery
-async function recoverPassword(event) {
-    event.preventDefault();
-
-    const username = document.getElementById('forgotUsername').value;
-    const securityAnswer = document.getElementById('forgotSecurityAnswer').value;
-
-    try {
-        const response = await fetch('/recover-password', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ username, securityAnswer })
-        });
-
-        const data = await response.json();
-
-        if (response.ok) {
-            alert(`Your password is: ${data.password}`);
-            showTab('login');
-        } else {
-            alert(data.error || 'Error during password recovery. Please try again.');
-        }
-    } catch (error) {
-        alert('Error during password recovery. Please try again.');
-    }
-} 
