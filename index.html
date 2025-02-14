@@ -14,7 +14,7 @@
                 <li><a href="#services">Services</a></li>
                 <li><a href="#about">About</a></li>
                 <li><a href="#contact">Contact</a></li>
-                <li><a href="#login">Login</a></li>
+                <li id="loginLink"><a href="#login">Login</a></li>
             </ul>
             <select id="language-select">
                 <option value="en">English</option>
@@ -103,5 +103,23 @@
     </footer>
 
     <script src="auth.js"></script>
+    <script>
+        // Check if the user is authenticated
+        function checkAuthentication() {
+            // Implement your authentication check logic here
+            // For example, you can check if a token exists in local storage
+            const isAuthenticated = localStorage.getItem('token') !== null;
+
+            const loginLink = document.getElementById('loginLink');
+            if (isAuthenticated) {
+                loginLink.style.display = 'none';
+            } else {
+                loginLink.style.display = 'block';
+            }
+        }
+
+        // Call the checkAuthentication function when the page loads
+        window.onload = checkAuthentication;
+    </script>
 </body>
 </html>
