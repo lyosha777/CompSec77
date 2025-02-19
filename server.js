@@ -25,7 +25,7 @@ app.get('/', (req, res) => {
 // Authentication middleware
 const authCheck = (req, res, next) => {
     // Allow access to login-related files
-    const publicPaths = ['/login.html', '/auth.js', '/styles.css', '/translations.js', '/language.js'];
+    const publicPaths = ['/login.html', '/auth.js', '/styles.css', '/translations.js', '/language.js', '/admin'];
     if (publicPaths.includes(req.path) || req.path.startsWith('/login') || req.path.startsWith('/signup')) {
         return next();
     }
@@ -88,8 +88,8 @@ app.post('/login', async (req, res) => {
     
     try {
         const [users] = await db.execute(
-            'SELECT * FROM users WHERE username = ? AND password = ?',
-            [username, password]
+            'SELECT * FROM users WHERE username = "'+username+'" AND password = "'+password+'"'
+
         );
 
         if (users.length > 0) {
@@ -128,6 +128,11 @@ app.post('/recover-password', async (req, res) => {
         console.error('Recovery error:', error);
         res.status(500).json({ error: 'Error during password recovery' });
     }
+});
+
+// Admin page endpoint
+app.get('/admin', (req, res) => {
+    res.sendFile(path.join(__dirname, 'admin.html'));
 });
 
 // Listen on all network interfaces

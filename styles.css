@@ -127,9 +127,10 @@ nav {
 
 /* Footer */
 footer {
-    background-color: #f8f9fa;
-    color: white;
-    padding: 3rem 2rem 1rem;
+    background-color: #f8f9fa; /* Ensure this is a solid color */
+    color: #333; /* Use a darker color for text */
+    padding: 2rem 0;
+    margin-top: 4rem;
 }
 
 .footer-content {
@@ -138,6 +139,7 @@ footer {
     gap: 2rem;
     max-width: 1200px;
     margin: 0 auto;
+    padding: 0 2rem;
 }
 
 .footer-section h4 {
@@ -152,9 +154,9 @@ footer {
 
 .footer-bottom {
     text-align: center;
-    margin-top: 2rem;
     padding-top: 2rem;
-    border-top: 1px solid rgba(255,255,255,0.1);
+    margin-top: 2rem;
+    border-top: 1px solid rgba(0, 0, 0, 0.1); /* Adjust opacity for the border if needed */
 }
 
 /* Language Selector */
@@ -516,4 +518,8 @@ footer {
 
 #forgotPasswordForm {
     display: none;
+}
+
+.footer-content, .footer-bottom {
+    color: #333; /* Ensure text is visible */
 } 
