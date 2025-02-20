@@ -3,8 +3,11 @@ const bodyParser = require('body-parser');
 const path = require('path');
 const session = require('express-session');
 const db = require('./db');
+const bcrypt = require('bcrypt');
+const saltRounds = 12;
 const app = express();
 const port = 3000;
+const rateLimit = require('express-rate-limit');
 
 // Add session middleware before other middleware
 app.use(session({
@@ -17,6 +20,51 @@ app.use(session({
 // Middleware
 app.use(bodyParser.json());
 
+// Create limiters
+const loginLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000, // 15 minutes
+    max: 5, // 5 attempts
+    message: { error: 'Too many login attempts. Please try again after 15 minutes.' },
+    standardHeaders: true,
+    legacyHeaders: false
+});
+
+const signupLimiter = rateLimit({
+    windowMs: 60 * 60 * 1000, // 1 hour
+    max: 3, // 3 attempts
+    message: { error: 'Too many signup attempts. Please try again after 1 hour.' }
+});
+
+const passwordRecoveryLimiter = rateLimit({
+    windowMs: 60 * 60 * 1000, // 1 hour
+    max: 3, // 3 attempts
+    message: { error: 'Too many password recovery attempts. Please try again after 1 hour.' }
+});
+
+const loginAttempts = new Map();
+
+function loginRateLimiter(req, res, next) {
+    const { username } = req.body;
+    const now = Date.now();
+    const windowMs = 15 * 60 * 1000; // 15 minutes
+    const maxAttempts = 5;
+
+    if (loginAttempts.has(username)) {
+        const attempts = loginAttempts.get(username);
+        if (attempts.length >= maxAttempts && now - attempts[0] < windowMs) {
+            return res.status(429).json({ error: 'Too many login attempts. Please try again after 15 minutes.' });
+        }
+        attempts.push(now);
+        if (attempts.length > maxAttempts) {
+            attempts.shift();
+        }
+    } else {
+        loginAttempts.set(username, [now]);
+    }
+
+    next();
+}
+
 // Serve login page as the default route
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'login.html'));
@@ -24,16 +72,22 @@ app.get('/', (req, res) => {
 
 // Authentication middleware
 const authCheck = (req, res, next) => {
-    // Allow access to login-related files
-    const publicPaths = ['/login.html', '/auth.js', '/styles.css', '/translations.js', '/language.js', '/admin'];
+    const publicPaths = ['/login.html', '/auth.js', '/styles.css', '/translations.js', '/language.js'];
     if (publicPaths.includes(req.path) || req.path.startsWith('/login') || req.path.startsWith('/signup')) {
         return next();
     }
-    
-    // Check for authentication
-    const isAuthenticated = req.session && req.session.isAuthenticated;
-    if (!isAuthenticated) {
-        return res.redirect('/login.html');
+
+    if (req.path.startsWith('/admin')) {
+        const isAuthenticated = req.session && req.session.isAuthenticated;
+        const username = req.session.username;
+        if (!isAuthenticated || !username || !username.startsWith('AD')) {
+            return res.redirect('/login.html');
+        }
+    } else {
+        const isAuthenticated = req.session && req.session.isAuthenticated;
+        if (!isAuthenticated) {
+            return res.redirect('/login.html');
+        }
     }
     next();
 };
@@ -53,10 +107,48 @@ app.use((err, req, res, next) => {
     next(err);
 });
 
+// Password validation function
+function validatePassword(password) {
+    // Minimum length check
+    const minLength = password.length >= 10;
+    
+    // Character type checks
+    const hasUpperCase = /[A-Z]/.test(password);
+    const hasLowerCase = /[a-z]/.test(password);
+    const hasSpecialChar = /[!@#$%^&*(),.?":{}|<>]/.test(password);
+    const hasNumber = /[0-9]/.test(password);
+    
+    // Additional security checks
+    const noCommonPatterns = !/(abc|password|qwerty)/i.test(password);
+    const noRepeatingChars = !/(.)\1{2,}/.test(password); // No character repeated more than twice
+    const hasMinimumUniqueChars = new Set(password).size >= 8; // At least 8 unique characters
+    
+    const requirements = {
+        minLength,
+        hasUpperCase,
+        hasLowerCase,
+        hasSpecialChar,
+        hasNumber,
+        noCommonPatterns,
+        noRepeatingChars,
+        hasMinimumUniqueChars
+    };
+
+    const isValid = Object.values(requirements).every(req => req);
+    
+    return { isValid, requirements };
+}
+
 // Signup endpoint
-app.post('/signup', async (req, res) => {
+app.post('/signup', signupLimiter, async (req, res) => {
     const { username, password, securityQuestion, securityAnswer } = req.body;
     
+    // Validate password on server side
+    const { isValid, requirements } = validatePassword(password);
+    if (!isValid) {
+        return res.status(400).json({ error: 'Password does not meet requirements', requirements });
+    }
+
     try {
         // Check if username exists
         const [users] = await db.execute(
@@ -68,10 +160,13 @@ app.post('/signup', async (req, res) => {
             return res.status(400).json({ error: 'Username already exists' });
         }
 
-        // Insert new user
+        // Hash password
+        const hashedPassword = await bcrypt.hash(password, saltRounds);
+
+        // Insert new user with hashed password
         await db.execute(
             'INSERT INTO users (username, password, security_question, security_answer) VALUES (?, ?, ?, ?)',
-            [username, password, securityQuestion, securityAnswer]
+            [username, hashedPassword, securityQuestion, securityAnswer]
         );
 
         res.json({ message: 'Signup successful' });
@@ -82,24 +177,32 @@ app.post('/signup', async (req, res) => {
 });
 
 // Login endpoint
-app.post('/login', async (req, res) => {
+app.post('/login', loginRateLimiter, async (req, res) => {
     const { username, password } = req.body;
     console.log('Login attempt:', username);
     
     try {
         const [users] = await db.execute(
-            'SELECT * FROM users WHERE username = "'+username+'" AND password = "'+password+'"'
-
+            'SELECT * FROM users WHERE username = ?',
+            [username]
         );
 
         if (users.length > 0) {
-            const token = Math.random().toString(36).substring(7);
-            req.session.isAuthenticated = true;
-            res.json({ 
-                success: true, 
-                token: token,
-                message: 'Login successful'
-            });
+            const match = await bcrypt.compare(password, users[0].password);
+            
+            if (match) {
+                const token = Math.random().toString(36).substring(7);
+                req.session.isAuthenticated = true;
+                req.session.username = username;
+                res.json({ 
+                    success: true, 
+                    token: token,
+                    isAdmin: username.startsWith('AD'),
+                    message: 'Login successful'
+                });
+            } else {
+                res.status(401).json({ error: 'Invalid credentials' });
+            }
         } else {
             res.status(401).json({ error: 'Invalid credentials' });
         }
@@ -110,17 +213,26 @@ app.post('/login', async (req, res) => {
 });
 
 // Password recovery endpoint
-app.post('/recover-password', async (req, res) => {
-    const { username, securityAnswer } = req.body;
+app.post('/recover-password', passwordRecoveryLimiter, async (req, res) => {
+    const { username, securityAnswer, newPassword } = req.body;
     
     try {
         const [users] = await db.execute(
-            'SELECT password FROM users WHERE username = ? AND security_answer = ?',
+            'SELECT * FROM users WHERE username = ? AND security_answer = ?',
             [username, securityAnswer]
         );
 
         if (users.length > 0) {
-            res.json({ password: users[0].password });
+            // Hash the new password
+            const hashedPassword = await bcrypt.hash(newPassword, saltRounds);
+            
+            // Update the password
+            await db.execute(
+                'UPDATE users SET password = ? WHERE username = ?',
+                [hashedPassword, username]
+            );
+            
+            res.json({ message: 'Password updated successfully' });
         } else {
             res.status(401).json({ error: 'Invalid username or security answer' });
         }
@@ -133,6 +245,33 @@ app.post('/recover-password', async (req, res) => {
 // Admin page endpoint
 app.get('/admin', (req, res) => {
     res.sendFile(path.join(__dirname, 'admin.html'));
+});
+
+// Admin login endpoint
+app.post('/admin-login', async (req, res) => {
+    const { username, password } = req.body;
+
+    // Check if the username starts with "AD"
+    if (!username.startsWith('AD')) {
+        return res.status(401).json({ error: 'Unauthorized access' });
+    }
+
+    try {
+        const [users] = await db.execute(
+            'SELECT * FROM users WHERE username = ? AND password = ?',
+            [username, password]
+        );
+
+        if (users.length > 0) {
+            req.session.isAdminAuthenticated = true;
+            res.json({ success: true, message: 'Admin login successful' });
+        } else {
+            res.status(401).json({ error: 'Invalid admin credentials' });
+        }
+    } catch (error) {
+        console.error('Admin login error:', error);
+        res.status(500).json({ error: 'Error during admin login' });
+    }
 });
 
 // Listen on all network interfaces

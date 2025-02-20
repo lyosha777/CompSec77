@@ -23,6 +23,17 @@
                     <div>
                         <label for="signupPassword">Password:</label>
                         <input type="password" id="signupPassword" name="password" required>
+                        <small class="password-requirements">
+                            Password must contain:
+                            - Minimum 10 characters
+                            - At least one uppercase letter
+                            - At least one lowercase letter
+                            - At least one special character
+                            - At least one number
+                            - No common patterns (123, abc, password, qwerty)
+                            - No character repeated more than twice
+                            - At least 8 unique characters
+                        </small>
                     </div>
                     <div>
                         <label for="confirmPassword">Confirm Password:</label>
