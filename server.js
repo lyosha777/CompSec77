@@ -139,6 +139,16 @@ function validatePassword(password) {
     return { isValid, requirements };
 }
 
+// Generate recovery codes
+function generateRecoveryCodes(count) {
+    const codes = [];
+    for (let i = 0; i < count; i++) {
+        const code = Math.random().toString(36).substring(2, 10).toUpperCase();
+        codes.push(code);
+    }
+    return codes;
+}
+
 // Signup endpoint
 app.post('/signup', signupLimiter, async (req, res) => {
     const { username, password, securityQuestion, securityAnswer } = req.body;
@@ -163,10 +173,13 @@ app.post('/signup', signupLimiter, async (req, res) => {
         // Hash password
         const hashedPassword = await bcrypt.hash(password, saltRounds);
 
-        // Insert new user with hashed password
+        // Generate recovery codes for the new user
+        const recoveryCodes = generateRecoveryCodes(5);
+
+        // Insert new user with hashed password and recovery codes
         await db.execute(
-            'INSERT INTO users (username, password, security_question, security_answer) VALUES (?, ?, ?, ?)',
-            [username, hashedPassword, securityQuestion, securityAnswer]
+            'INSERT INTO users (username, password, security_question, security_answer, recovery_codes) VALUES (?, ?, ?, ?, ?)',
+            [username, hashedPassword, securityQuestion, securityAnswer, JSON.stringify(recoveryCodes)]
         );
 
         res.json({ message: 'Signup successful' });
@@ -214,31 +227,57 @@ app.post('/login', loginRateLimiter, async (req, res) => {
 
 // Password recovery endpoint
 app.post('/recover-password', passwordRecoveryLimiter, async (req, res) => {
-    const { username, securityAnswer, newPassword } = req.body;
-    
+    const { username, recoveryCode, newPassword } = req.body;
+
     try {
         const [users] = await db.execute(
-            'SELECT * FROM users WHERE username = ? AND security_answer = ?',
-            [username, securityAnswer]
+            'SELECT * FROM users WHERE username = ?',
+            [username]
         );
 
         if (users.length > 0) {
-            // Hash the new password
-            const hashedPassword = await bcrypt.hash(newPassword, saltRounds);
-            
-            // Update the password
-            await db.execute(
-                'UPDATE users SET password = ? WHERE username = ?',
-                [hashedPassword, username]
-            );
-            
-            res.json({ message: 'Password updated successfully' });
+            const user = users[0];
+            const recoveryCodes = JSON.parse(user.recovery_codes);
+
+            if (recoveryCodes.includes(recoveryCode)) {
+                // Hash the new password
+                const hashedPassword = await bcrypt.hash(newPassword, saltRounds);
+
+                // Update the password and remove the used recovery code
+                await db.execute(
+                    'UPDATE users SET password = ?, recovery_codes = ? WHERE username = ?',
+                    [hashedPassword, JSON.stringify(recoveryCodes.filter(code => code !== recoveryCode)), username]
+                );
+
+                res.json({ message: 'Password updated successfully' });
+            } else {
+                res.status(401).json({ error: 'Invalid recovery code' });
+            }
         } else {
-            res.status(401).json({ error: 'Invalid username or security answer' });
+            res.status(401).json({ error: 'Invalid username' });
         }
     } catch (error) {
         console.error('Recovery error:', error);
         res.status(500).json({ error: 'Error during password recovery' });
+    }
+});
+
+// Generate new recovery codes endpoint
+app.post('/generate-recovery-codes', async (req, res) => {
+    const { username } = req.body;
+
+    try {
+        const newRecoveryCodes = generateRecoveryCodes(5);
+
+        await db.execute(
+            'UPDATE users SET recovery_codes = ? WHERE username = ?',
+            [JSON.stringify(newRecoveryCodes), username]
+        );
+
+        res.json({ recoveryCodes: newRecoveryCodes });
+    } catch (error) {
+        console.error('Error generating recovery codes:', error);
+        res.status(500).json({ error: 'Error generating recovery codes' });
     }
 });
 

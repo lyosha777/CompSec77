@@ -1,3 +1,10 @@
+document.addEventListener('DOMContentLoaded', () => {
+    const isAuthenticated = localStorage.getItem('isAuthenticated');
+    if (!isAuthenticated && window.location.pathname === '/profile.html') {
+        window.location.replace('login.html');
+    }
+});
+
 // Function to show/hide login/signup forms
 function showTab(tabName) {
     const loginForm = document.getElementById('loginForm');
@@ -111,7 +118,8 @@ async function signup(event) {
 function logout() {
     localStorage.removeItem('isAuthenticated');
     localStorage.removeItem('authToken');
-    window.location.href = 'index.html';
+    localStorage.removeItem('isAdminAuthenticated');
+    window.location.replace('login.html');
 }
 
 // Add these functions after the existing ones
@@ -128,11 +136,11 @@ function showForgotPassword() {
 
 async function recoverPassword(event) {
     event.preventDefault();
-    
+
     const username = document.getElementById('recoveryUsername').value;
-    const securityAnswer = document.getElementById('recoveryAnswer').value;
+    const recoveryCode = document.getElementById('recoveryCode').value;
     const newPassword = prompt('Enter your new password:');
-    
+
     if (!newPassword) return;
 
     try {
@@ -143,7 +151,7 @@ async function recoverPassword(event) {
             },
             body: JSON.stringify({ 
                 username, 
-                securityAnswer,
+                recoveryCode,
                 newPassword 
             })
         });
@@ -209,4 +217,40 @@ function validatePassword(password) {
     const isValid = Object.values(requirements).every(req => req);
     
     return { isValid, requirements };
+}
+
+async function generateRecoveryCodes() {
+    const username = localStorage.getItem('username');
+
+    try {
+        const response = await fetch('/generate-recovery-codes', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ username })
+        });
+
+        const data = await response.json();
+
+        if (response.ok) {
+            displayRecoveryCodes(data.recoveryCodes);
+        } else {
+            alert('Error generating recovery codes');
+        }
+    } catch (error) {
+        console.error('Error generating recovery codes:', error);
+        alert('Error generating recovery codes');
+    }
+}
+
+function displayRecoveryCodes(codes) {
+    const recoveryCodesContainer = document.getElementById('recoveryCodes');
+    recoveryCodesContainer.innerHTML = '';
+
+    codes.forEach(code => {
+        const codeElement = document.createElement('div');
+        codeElement.textContent = code;
+        recoveryCodesContainer.appendChild(codeElement);
+    });
 }
