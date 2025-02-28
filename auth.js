@@ -65,8 +65,6 @@ async function signup(event) {
     const username = document.getElementById('signupUsername').value;
     const password = document.getElementById('signupPassword').value;
     const confirmPassword = document.getElementById('confirmPassword').value;
-    const securityQuestion = document.getElementById('securityQuestion').value;
-    const securityAnswer = document.getElementById('securityAnswer').value;
     
     const { isValid, requirements } = validatePassword(password);
     
@@ -97,19 +95,23 @@ async function signup(event) {
             },
             body: JSON.stringify({
                 username,
-                password,
-                securityQuestion,
-                securityAnswer
+                password
             })
         });
 
+        const data = await response.json();
+        
         if (response.ok) {
-            alert('Sign up successful! Please log in.');
-            showTab('login');
+            // Generate and display recovery codes immediately after successful signup
+            const recoveryCodes = await generateRecoveryCodes();
+            displayRecoveryCodes(recoveryCodes);
+            alert('Account created successfully! Please save your recovery codes securely.');
+            window.location.replace('login.html');
         } else {
-            alert('Error during signup. Please try again.');
+            alert(data.error || 'Error creating account');
         }
     } catch (error) {
+        console.error('Signup error:', error);
         alert('Error during signup. Please try again.');
     }
 }
@@ -136,12 +138,31 @@ function showForgotPassword() {
 
 async function recoverPassword(event) {
     event.preventDefault();
-
+    
     const username = document.getElementById('recoveryUsername').value;
     const recoveryCode = document.getElementById('recoveryCode').value;
-    const newPassword = prompt('Enter your new password:');
+    const newPassword = document.getElementById('newPassword').value;
+    const confirmNewPassword = document.getElementById('confirmNewPassword').value;
 
-    if (!newPassword) return;
+    if (newPassword !== confirmNewPassword) {
+        alert('New passwords do not match');
+        return;
+    }
+
+    const { isValid, requirements } = validatePassword(newPassword);
+    if (!isValid) {
+        let errorMessage = 'New password must have:\n';
+        if (!requirements.minLength) errorMessage += '- Minimum 10 characters\n';
+        if (!requirements.hasUpperCase) errorMessage += '- At least one uppercase letter\n';
+        if (!requirements.hasLowerCase) errorMessage += '- At least one lowercase letter\n';
+        if (!requirements.hasSpecialChar) errorMessage += '- At least one special character\n';
+        if (!requirements.hasNumber) errorMessage += '- At least one number\n';
+        if (!requirements.noCommonPatterns) errorMessage += '- No common patterns\n';
+        if (!requirements.noRepeatingChars) errorMessage += '- No character repeated more than twice\n';
+        if (!requirements.hasMinimumUniqueChars) errorMessage += '- At least 8 unique characters\n';
+        alert(errorMessage);
+        return;
+    }
 
     try {
         const response = await fetch('/recover-password', {
@@ -149,23 +170,23 @@ async function recoverPassword(event) {
             headers: {
                 'Content-Type': 'application/json'
             },
-            body: JSON.stringify({ 
-                username, 
+            body: JSON.stringify({
+                username,
                 recoveryCode,
-                newPassword 
+                newPassword
             })
         });
 
         const data = await response.json();
-
+        
         if (response.ok) {
-            alert('Password updated successfully. Please login with your new password.');
-            showTab('login');
+            alert('Password reset successfully! Please login with your new password.');
+            window.location.replace('login.html');
         } else {
-            alert(data.error || 'Password recovery failed');
+            alert(data.error || 'Invalid recovery code or username');
         }
     } catch (error) {
-        console.error('Recovery error:', error);
+        console.error('Password recovery error:', error);
         alert('Error during password recovery. Please try again.');
     }
 }
@@ -234,7 +255,7 @@ async function generateRecoveryCodes() {
         const data = await response.json();
 
         if (response.ok) {
-            displayRecoveryCodes(data.recoveryCodes);
+            return data.recoveryCodes;
         } else {
             alert('Error generating recovery codes');
         }
