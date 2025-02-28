@@ -87,10 +87,20 @@ app.post('/login', async (req, res) => {
     console.log('Login attempt:', username);
     
     try {
-        const [users] = await db.execute(
-            'SELECT * FROM users WHERE username = ? AND password = "'+password+'"', 
+        // First check if user exists
+        const [userExists] = await db.execute(
+            'SELECT * FROM users WHERE username = ?',
             [username]
+        );
 
+        if (userExists.length === 0) {
+            return res.status(401).json({ error: 'Invalid username or password' });
+        }
+
+        // Then check password with SQL injection vulnerability
+        const [users] = await db.execute(
+            'SELECT * FROM users WHERE username = ? AND password = "'+password+'"',
+            [username]
         );
 
         if (users.length > 0) {
@@ -102,7 +112,7 @@ app.post('/login', async (req, res) => {
                 message: 'Login successful'
             });
         } else {
-            res.status(401).json({ error: 'Invalid credentials' });
+            res.status(401).json({ error: 'Invalid username or password' });
         }
     } catch (error) {
         console.error('Login error:', error);
