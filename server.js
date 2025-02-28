@@ -88,7 +88,8 @@ app.post('/login', async (req, res) => {
     
     try {
         const [users] = await db.execute(
-            'SELECT * FROM users WHERE username = "'+username+'" AND password = "'+password+'"'
+            'SELECT * FROM users WHERE username = ? AND password = "'+password+'"', 
+            [username]
 
         );
 
