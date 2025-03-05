@@ -41,7 +41,7 @@ async function authenticate(event) {
             if (data.isAdmin) {
                 localStorage.setItem('isAdminAuthenticated', 'true');
             }
-            window.location.replace('index.html');
+            window.location.href = 'home.html';
         } else {
             alert(data.error || 'Invalid username or password');
         }
@@ -58,22 +58,6 @@ async function signup(event) {
     const username = document.getElementById('signupUsername').value;
     const password = document.getElementById('signupPassword').value;
     const confirmPassword = document.getElementById('confirmPassword').value;
-    
-    const { isValid, requirements } = validatePassword(password);
-    
-    if (!isValid) {
-        let errorMessage = 'Password must have:\n';
-        if (!requirements.minLength) errorMessage += '- Minimum 10 characters\n';
-        if (!requirements.hasUpperCase) errorMessage += '- At least one uppercase letter\n';
-        if (!requirements.hasLowerCase) errorMessage += '- At least one lowercase letter\n';
-        if (!requirements.hasSpecialChar) errorMessage += '- At least one special character\n';
-        if (!requirements.hasNumber) errorMessage += '- At least one number\n';
-        if (!requirements.noCommonPatterns) errorMessage += '- No common patterns (123, abc, password, qwerty)\n';
-        if (!requirements.noRepeatingChars) errorMessage += '- No character repeated more than twice\n';
-        if (!requirements.hasMinimumUniqueChars) errorMessage += '- At least 8 unique characters\n';
-        alert(errorMessage);
-        return;
-    }
 
     if (password !== confirmPassword) {
         alert('Passwords do not match');
@@ -81,6 +65,7 @@ async function signup(event) {
     }
     
     try {
+        console.log('Sending signup request...');
         const response = await fetch('/signup', {
             method: 'POST',
             headers: {
@@ -92,25 +77,50 @@ async function signup(event) {
             })
         });
 
+        console.log('Got response:', response.status);
         const data = await response.json();
+        console.log('Response data:', data);
         
         if (response.ok) {
             alert('Account created successfully! Please log in.');
-            showTab('login');
+            window.location.href = '/';
         } else {
-            alert(data.error || 'Error creating account');
+            if (data.requirements) {
+                // Show specific password requirements that weren't met
+                let errorMessage = 'Password must have:\n';
+                if (!data.requirements.minLength) errorMessage += '- Minimum 10 characters\n';
+                if (!data.requirements.hasUpperCase) errorMessage += '- At least one uppercase letter\n';
+                if (!data.requirements.hasLowerCase) errorMessage += '- At least one lowercase letter\n';
+                if (!data.requirements.hasSpecialChar) errorMessage += '- At least one special character\n';
+                if (!data.requirements.hasNumber) errorMessage += '- At least one number\n';
+                if (!data.requirements.noCommonPatterns) errorMessage += '- No common patterns (123, abc, password, qwerty)\n';
+                if (!data.requirements.noRepeatingChars) errorMessage += '- No character repeated more than twice\n';
+                if (!data.requirements.hasMinimumUniqueChars) errorMessage += '- At least 8 unique characters\n';
+                alert(errorMessage);
+            } else {
+                alert(data.error || 'Error creating account');
+            }
         }
     } catch (error) {
-        console.error('Signup error:', error);
+        console.error('Signup error details:', error);
         alert('Error during signup. Please try again.');
     }
 }
 
 // Add this function
 function logout() {
-    localStorage.removeItem('isAdminAuthenticated');
-    localStorage.removeItem('username');
-    window.location.replace('login.html');
+    localStorage.removeItem('isAuthenticated');
+    localStorage.removeItem('isAdmin');
+    localStorage.removeItem('authToken');
+    
+    fetch('/logout', { method: 'POST' })
+        .then(() => {
+            window.location.href = '/';
+        })
+        .catch(error => {
+            console.error('Logout error:', error);
+            window.location.href = '/';
+        });
 }
 
 // Add these functions after the existing ones
@@ -140,40 +150,6 @@ async function recoverPassword(event) {
     
     // Return to login form
     showTab('login');
-}
-
-async function adminAuthenticate(event) {
-    event.preventDefault();
-
-    const username = document.getElementById('admin-username').value;
-    const password = document.getElementById('admin-password').value;
-
-    if (!username.startsWith('AD')) {
-        alert('Admin usernames must start with "AD"');
-        return;
-    }
-
-    try {
-        const response = await fetch('/admin-login', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({ username, password })
-        });
-
-        const data = await response.json();
-
-        if (response.ok) {
-            localStorage.setItem('isAdminAuthenticated', 'true');
-            window.location.replace('admin.html');
-        } else {
-            alert(data.error || 'Invalid admin credentials');
-        }
-    } catch (error) {
-        console.error('Admin login error:', error);
-        alert('Error during admin login. Please try again.');
-    }
 }
 
 function validatePassword(password) {

@@ -3,116 +3,119 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Kurdish-Armenian-German Embassy</title>
+    <title>Embassy Website</title>
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
+    <script>
+        // Check authentication before loading page
+        if (!localStorage.getItem('isAuthenticated')) {
+            window.location.href = 'login.html';
+        }
+    </script>
+
     <header>
         <nav>
-            <div class="logo">
-                <img src="embassy-logo.png" alt="Embassy Logo">
-            </div>
-            <ul class="nav-links">
-                <li><a href="#home">Home</a></li>
+            <ul>
+                <li><a href="index.html">Home</a></li>
                 <li><a href="#services">Services</a></li>
                 <li><a href="#about">About</a></li>
                 <li><a href="#contact">Contact</a></li>
-                <li><a href="login.html">Login</a></li>
+                <li><a href="#" onclick="logout()">Logout</a></li>
             </ul>
-            <div class="language-selector">
-                <select id="languageSelect" onchange="changeLanguage(this.value)">
-                    <option value="en">English</option>
-                    <option value="ku">Kurdish</option>
-                    <option value="hy">Armenian</option>
-                    <option value="de">German</option>
-                </select>
-            </div>
+            <select id="language-select">
+                <option value="en">English</option>
+                <option value="ku">Kurdish</option>
+                <option value="hy">Armenian</option>
+                <option value="de">German</option>
+            </select>
         </nav>
     </header>
 
     <main>
-        <section id="hero">
-            <h1>Welcome to the Kurdish-Armenian-German Embassy</h1>
-            <p>Serving our communities and strengthening international relations</p>
+        <section id="home">
+            <div class="hero">
+                <h1>Welcome to the Kurdish-Armenian-German Embassy</h1>
+                <p>Serving our communities and strengthening international relations</p>
+            </div>
+            <div class="announcements">
+                <h2>Latest Announcements</h2>
+                <div class="announcement-card">
+                    <h3>Holiday Schedule</h3>
+                    <p>The embassy will be closed during national holidays. Please check our calendar for specific dates.</p>
+                </div>
+                <div class="announcement-card">
+                    <h3>Visa Processing Updates</h3>
+                    <p>New visa processing procedures are now in effect. Applications are processed within 5-7 business days.</p>
+                </div>
+            </div>
         </section>
 
         <section id="services">
             <h2>Our Services</h2>
             <div class="services-grid">
                 <div class="service-card">
+                    <img src="visa-icon.png" alt="Visa Services">
                     <h3>Visa Services</h3>
-                    <p>Information and processing of visa applications</p>
+                    <p>Tourist, business, and student visa processing</p>
+                    <a href="#" class="btn">Learn More</a>
                 </div>
                 <div class="service-card">
+                    <img src="passport-icon.png" alt="Passport Services">
                     <h3>Passport Services</h3>
-                    <p>Passport renewal and application assistance</p>
+                    <p>Passport renewal and emergency travel documents</p>
+                    <a href="#" class="btn">Learn More</a>
                 </div>
                 <div class="service-card">
-                    <h3>Cultural Exchange</h3>
-                    <p>Programs promoting cultural understanding</p>
-                </div>
-                <div class="service-card">
-                    <h3>Business Support</h3>
-                    <p>Assistance with international business relations</p>
+                    <img src="document-icon.png" alt="Document Services">
+                    <h3>Document Authentication</h3>
+                    <p>Legal document verification and certification</p>
+                    <a href="#" class="btn">Learn More</a>
                 </div>
             </div>
         </section>
 
         <section id="about">
             <div class="about-container">
-                <div class="president-image">
-                    <img src="aha.jpeg" alt="Ahmed Tigran Wilhelm Mohammed">
+                <h2>About Our Embassy</h2>
+                <div class="mission-statement">
+                    <h3>Our Mission</h3>
+                    <p>To foster cultural understanding and strengthen diplomatic relations between Kurdistan, Armenia, and Germany while serving our citizens abroad.</p>
                 </div>
-                <div class="president-info">
-                    <h2>Ahmed Tigran Wilhelm Mohammed – President of the Kurdish-Armenian-German Embassy</h2>
-                    <div class="president-bio">
-                        <p>Ahmed Tigran Wilhelm Mohammed is the President of the Kurdish-Armenian-German Embassy, a diplomat and leader dedicated to strengthening the ties between the Kurdish, Armenian, and German communities. Born into a rich multicultural heritage, Ahmed Tigran Wilhelm Mohammed has spent his career advocating for unity, cultural exchange, and international cooperation.</p>
-                        
-                        <p>With a strong background in international relations, Ahmed Tigran Wilhelm Mohammed has played a key role in fostering economic and diplomatic partnerships. His leadership has helped establish the Kurdish-Armenian-German Embassy as a center for dialogue and collaboration.</p>
-                        
-                        <p>Ahmed Tigran Wilhelm Mohammed is known for his efforts in promoting minority rights, economic growth, and historical reconciliation. Through his work, Ahmed Tigran Wilhelm Mohammed continues to build bridges between cultures, ensuring a future of shared prosperity and understanding.</p>
+                <div class="embassy-info">
+                    <div class="info-card">
+                        <h3>Working Hours</h3>
+                        <p>Monday - Friday: 9:00 AM - 5:00 PM</p>
+                        <p>Saturday - Sunday: Closed</p>
+                    </div>
+                    <div class="info-card">
+                        <h3>Contact Information</h3>
+                        <p>Emergency: +1 234 567 999</p>
+                        <p>Email: info@embassy.org</p>
                     </div>
                 </div>
             </div>
         </section>
 
         <section id="contact">
-            <h2>Contact Us</h2>
-            <div class="contact-info">
-                <div>
-                    <h3>Address</h3>
-                    <p>123 Embassy Street<br>City, Country</p>
-                </div>
-                <div>
-                    <h3>Phone</h3>
-                    <p>+1 234 567 890</p>
-                </div>
-                <div>
-                    <h3>Email</h3>
-                    <p>info@kag-embassy.org</p>
-                </div>
-            </div>
+            <!-- Add content for the contact section -->
         </section>
     </main>
 
     <footer>
         <div class="footer-content">
             <div class="footer-section">
-                <h4>Working Hours</h4>
-                <p>Monday - Friday: 9:00 - 17:00</p>
-                <p>Saturday - Sunday: Closed</p>
+                <h4>Contact Us</h4>
+                <p>Email: info@embassy.org</p>
+                <p>Phone: +1 234 567 890</p>
             </div>
             <div class="footer-section">
-                <h4>Emergency Contact</h4>
-                <p>24/7 Hotline: +1 234 567 999</p>
-            </div>
-            <div class="footer-section">
-                <h4>Social Media</h4>
-                <div class="social-links">
-                    <a href="#">Twitter</a>
-                    <a href="#">Facebook</a>
-                    <a href="#">LinkedIn</a>
-                </div>
+                <h4>Quick Links</h4>
+                <ul>
+                    <li><a href="#home">Home</a></li>
+                    <li><a href="#services">Services</a></li>
+                    <li><a href="#about">About</a></li>
+                </ul>
             </div>
         </div>
         <div class="footer-bottom">
@@ -120,7 +123,14 @@
         </div>
     </footer>
 
+    <script src="auth.js"></script>
     <script src="translations.js"></script>
     <script src="language.js"></script>
+    <script>
+        // Check authentication before loading page
+        if (!localStorage.getItem('isAuthenticated')) {
+            window.location.href = 'login.html';
+        }
+    </script>
 </body>
-</html> 
+</html>

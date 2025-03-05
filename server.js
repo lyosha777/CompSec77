@@ -5,20 +5,27 @@ const session = require('express-session');
 const db = require('./db');
 const bcrypt = require('bcryptjs');
 const saltRounds = 12;
+const logger = require('./logger');
+const { adminConfig } = require('./config');
 const app = express();
 const port = 3000;
 const rateLimit = require('express-rate-limit');
+const fs = require('fs');
 
-// Add session middleware before other middleware
+// Add body parser middleware
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({ extended: true }));
+
+// Serve static files BEFORE auth middleware
+app.use(express.static(path.join(__dirname)));
+
+// Add session middleware
 app.use(session({
     secret: 'your-secret-key',
     resave: false,
     saveUninitialized: true,
     cookie: { secure: false } // set to true if using https
 }));
-
-// Middleware
-app.use(bodyParser.json());
 
 // Create limiters
 const loginLimiter = rateLimit({
@@ -52,6 +59,7 @@ function loginRateLimiter(req, res, next) {
     if (loginAttempts.has(username)) {
         const attempts = loginAttempts.get(username);
         if (attempts.length >= maxAttempts && now - attempts[0] < windowMs) {
+            logger.logRateLimitExceeded(req.ip, req.path);
             return res.status(429).json({ error: 'Too many login attempts. Please try again after 15 minutes.' });
         }
         attempts.push(now);
@@ -65,47 +73,50 @@ function loginRateLimiter(req, res, next) {
     next();
 }
 
+// Apply auth middleware
+app.use(authCheck);
+
 // Serve login page as the default route
 app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, 'login.html'));
+    if (req.session.isAuthenticated) {
+        res.redirect('/home.html');
+    } else {
+        res.sendFile(path.join(__dirname, 'index.html'));
+    }
 });
 
 // Authentication middleware
-const authCheck = (req, res, next) => {
-    const publicPaths = ['/login.html', '/auth.js', '/styles.css', '/translations.js', '/language.js'];
-    if (publicPaths.includes(req.path) || req.path.startsWith('/login') || req.path.startsWith('/signup')) {
+function authCheck(req, res, next) {
+    // Allow access to auth-related endpoints and static assets
+    const publicPaths = [
+        '/login',
+        '/signup',
+        '/signup.html',
+        '/',
+        '/index.html',
+        '/styles.css',
+        '/auth.js'
+    ];
+
+    // Check if the path is public or is a static asset
+    if (publicPaths.includes(req.path) || 
+        req.path.endsWith('.css') ||
+        req.path.endsWith('.js') ||
+        req.path.endsWith('.jpg') ||
+        req.path.endsWith('.png')) {
         return next();
     }
 
-    if (req.path.startsWith('/admin')) {
-        const isAuthenticated = req.session && req.session.isAuthenticated;
-        const username = req.session.username;
-        if (!isAuthenticated || !username || !username.startsWith('AD')) {
-            return res.redirect('/login.html');
+    // Check if user is authenticated for other routes
+    if (!req.session.isAuthenticated) {
+        if (req.xhr || req.path.startsWith('/api/')) {
+            return res.status(401).json({ error: 'Authentication required' });
         }
-    } else {
-        const isAuthenticated = req.session && req.session.isAuthenticated;
-        if (!isAuthenticated) {
-            return res.redirect('/login.html');
-        }
+        return res.redirect('/');
     }
+
     next();
-};
-
-// Apply auth check to all routes except login
-app.use(authCheck);
-
-// Serve static files after auth check
-app.use(express.static(__dirname));
-
-// Database error handling middleware
-app.use((err, req, res, next) => {
-    if (err.code === 'ECONNREFUSED') {
-        console.error('Database connection was refused');
-        return res.status(500).send(`Database connection error. Code: ${err.code}, Message: ${err.message}`);
-    }
-    next(err);
-});
+}
 
 // Password validation function
 function validatePassword(password) {
@@ -150,48 +161,93 @@ function generateRecoveryCodes(count) {
 }
 
 // Signup endpoint
-app.post('/signup', signupLimiter, async (req, res) => {
-    const { username, password } = req.body;
-    
-    // Validate password on server side
-    const { isValid, requirements } = validatePassword(password);
-    if (!isValid) {
-        return res.status(400).json({ error: 'Password does not meet requirements', requirements });
-    }
-
+app.post('/signup', async (req, res) => {
     try {
-        // Check if username exists
-        const [users] = await db.execute(
-            'SELECT username FROM users WHERE username = ?', 
+        console.log('Received signup request:', req.body);
+        const { username, password } = req.body;
+        
+        if (!username || !password) {
+            console.log('Missing username or password');
+            return res.status(400).json({ error: 'Username and password are required' });
+        }
+
+        // Prevent creation of admin account
+        if (username.toLowerCase() === adminConfig.username.toLowerCase()) {
+            logger.logSignupFailure(username, req.ip, 'Attempted to create admin account');
+            return res.status(403).json({ error: 'Cannot create admin account' });
+        }
+
+        console.log('Checking if username exists:', username);
+        // Check if username already exists
+        const [existingUsers] = await db.execute(
+            'SELECT username FROM users WHERE username = ?',
             [username]
         );
 
-        if (users.length > 0) {
+        if (existingUsers.length > 0) {
+            console.log('Username already exists');
+            logger.logSignupFailure(username, req.ip, 'Username already exists');
             return res.status(400).json({ error: 'Username already exists' });
         }
 
-        // Hash password
-        const hashedPassword = await bcrypt.hash(password, saltRounds);
+        // Validate password
+        const passwordValidation = validatePassword(password);
+        if (!passwordValidation.isValid) {
+            console.log('Password validation failed');
+            logger.logPasswordValidationFailure(username, req.ip, passwordValidation.requirements);
+            return res.status(400).json({ 
+                error: 'Invalid password format',
+                requirements: passwordValidation.requirements
+            });
+        }
 
-        // Insert new user with hashed password
+        // Hash password and create user
+        const hashedPassword = await bcrypt.hash(password, saltRounds);
         await db.execute(
             'INSERT INTO users (username, password) VALUES (?, ?)',
             [username, hashedPassword]
         );
-
-        res.json({ message: 'Signup successful' });
+        
+        console.log('User created successfully');
+        logger.logSignupSuccess(username, req.ip);
+        
+        res.json({ 
+            success: true, 
+            message: 'User created successfully'
+        });
     } catch (error) {
         console.error('Signup error:', error);
-        res.status(500).json({ error: 'Error during signup' });
+        logger.logSystemError(error, 'Signup endpoint');
+        res.status(500).json({ error: 'Error creating user' });
     }
 });
 
 // Login endpoint
 app.post('/login', loginRateLimiter, async (req, res) => {
     const { username, password } = req.body;
-    console.log('Login attempt:', username);
     
     try {
+        // Check if it's the admin account
+        if (username === adminConfig.username) {
+            const match = await bcrypt.compare(password, adminConfig.password);
+            if (match) {
+                req.session.isAuthenticated = true;
+                req.session.isAdmin = true;
+                req.session.username = username;
+                logger.logUserLogin(username, true, req.ip);
+                logger.logSessionActivity(username, 'Admin session started', req.sessionID);
+                
+                return res.json({ 
+                    success: true,
+                    message: 'Admin login successful',
+                    isAdmin: true
+                });
+            }
+            logger.logFailedLoginAttempt(username, req.ip, 'Invalid admin password');
+            return res.status(401).json({ error: 'Invalid credentials' });
+        }
+
+        // Regular user login
         const [users] = await db.execute(
             'SELECT * FROM users WHERE username = ?',
             [username]
@@ -201,23 +257,25 @@ app.post('/login', loginRateLimiter, async (req, res) => {
             const match = await bcrypt.compare(password, users[0].password);
             
             if (match) {
-                const token = Math.random().toString(36).substring(7);
                 req.session.isAuthenticated = true;
                 req.session.username = username;
+                logger.logUserLogin(username, true, req.ip);
+                logger.logSessionActivity(username, 'Session started', req.sessionID);
+                
                 res.json({ 
-                    success: true, 
-                    token: token,
-                    isAdmin: username.startsWith('AD'),
+                    success: true,
                     message: 'Login successful'
                 });
             } else {
+                logger.logFailedLoginAttempt(username, req.ip, 'Invalid password');
                 res.status(401).json({ error: 'Invalid credentials' });
             }
         } else {
+            logger.logFailedLoginAttempt(username, req.ip, 'User not found');
             res.status(401).json({ error: 'Invalid credentials' });
         }
     } catch (error) {
-        console.error('Login error:', error);
+        logger.logSystemError(error, 'Login endpoint');
         res.status(500).json({ error: 'Error during login' });
     }
 });
@@ -236,47 +294,36 @@ app.post('/generate-recovery-codes', async (req, res) => {
 
         res.json({ recoveryCodes: newRecoveryCodes });
     } catch (error) {
+        logger.logSystemError(error, 'Generate recovery codes endpoint');
         console.error('Error generating recovery codes:', error);
         res.status(500).json({ error: 'Error generating recovery codes' });
     }
 });
 
-// Admin page endpoint
-app.get('/admin', (req, res) => {
-    res.sendFile(path.join(__dirname, 'admin.html'));
+// Logout endpoint
+app.post('/logout', (req, res) => {
+    const username = req.session.username;
+    if (username) {
+        logger.logUserLogout(username);
+        logger.logSessionActivity(username, 'Session ended', req.sessionID);
+    }
+    req.session.destroy();
+    res.json({ success: true });
 });
 
-// Admin login endpoint
-app.post('/admin-login', async (req, res) => {
-    const { username, password } = req.body;
-
-    // Check if the username starts with "AD"
-    if (!username.startsWith('AD')) {
-        return res.status(401).json({ error: 'Unauthorized access' });
+// Database error handling middleware
+app.use((err, req, res, next) => {
+    if (err.code === 'ECONNREFUSED') {
+        console.error('Database connection was refused');
+        return res.status(500).send(`Database connection error. Code: ${err.code}, Message: ${err.message}`);
     }
+    next(err);
+});
 
-    try {
-        const [users] = await db.execute(
-            'SELECT * FROM users WHERE username = ?',
-            [username]
-        );
-
-        if (users.length > 0) {
-            const match = await bcrypt.compare(password, users[0].password);
-            if (match) {
-                req.session.isAdminAuthenticated = true;
-                req.session.username = username;
-                res.json({ success: true, message: 'Admin login successful' });
-            } else {
-                res.status(401).json({ error: 'Invalid admin credentials' });
-            }
-        } else {
-            res.status(401).json({ error: 'Invalid admin credentials' });
-        }
-    } catch (error) {
-        console.error('Admin login error:', error);
-        res.status(500).json({ error: 'Error during admin login' });
-    }
+// Error handling middleware (must be after all routes)
+app.use((err, req, res, next) => {
+    console.error('Error:', err);
+    res.status(500).json({ error: 'Internal server error', details: err.message });
 });
 
 // Listen on all network interfaces

@@ -522,4 +522,20 @@ footer {
 
 .footer-content, .footer-bottom {
     color: #333; /* Ensure text is visible */
-} 
+}
+
+/* Ensure form inputs are clearly visible */
+.form-group input {
+    background-color: #fff;
+    border: 1px solid #ced4da;
+    border-radius: 4px;
+    padding: 8px;
+    width: 100%;
+    margin-top: 5px;
+}
+
+.form-group input:focus {
+    border-color: #80bdff;
+    outline: 0;
+    box-shadow: 0 0 0 0.2rem rgba(0,123,255,.25);
+}

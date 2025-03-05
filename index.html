@@ -1,122 +1,113 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Embassy Website</title>
+    <title>Login - Embassy Website</title>
     <link rel="stylesheet" href="styles.css">
 </head>
-<body>
-    <script>
-        // Check authentication before loading page
-        if (!localStorage.getItem('isAuthenticated')) {
-            window.location.href = 'login.html';
-        }
-    </script>
 
+<body>
     <header>
         <nav>
-            <ul>
-                <li><a href="index.html">Home</a></li>
-                <li><a href="#services">Services</a></li>
-                <li><a href="#about">About</a></li>
-                <li><a href="#contact">Contact</a></li>
-                <li><a href="admin-login.html">Admin</a></li>
-                <li><a href="#" onclick="logout()">Logout</a></li>
+            <div class="logo">
+                <img src="KAGFlag.jpg" alt="Kurdish-Armenian-German Embassy Flag">
+            </div>
+            <ul class="nav-links">
+                <li><a href="index.html#home">Home</a></li>
+                <li><a href="index.html#services">Services</a></li>
+                <li><a href="index.html#about">About</a></li>
+                <li><a href="index.html#contact">Contact</a></li>
+                <li><a href="login.html">Login</a></li>
             </ul>
-            <select id="language-select">
-                <option value="en">English</option>
-                <option value="ku">Kurdish</option>
-                <option value="hy">Armenian</option>
-                <option value="de">German</option>
-            </select>
+            <div class="language-selector">
+                <select id="languageSelect" onchange="changeLanguage(this.value)">
+                    <option value="en">English</option>
+                    <option value="ku">Kurdish</option>
+                    <option value="hy">Armenian</option>
+                    <option value="de">German</option>
+                </select>
+            </div>
         </nav>
     </header>
 
     <main>
-        <section id="home">
-            <div class="hero">
-                <h1>Welcome to the Kurdish-Armenian-German Embassy</h1>
-                <p>Serving our communities and strengthening international relations</p>
-            </div>
-            <div class="announcements">
-                <h2>Latest Announcements</h2>
-                <div class="announcement-card">
-                    <h3>Holiday Schedule</h3>
-                    <p>The embassy will be closed during national holidays. Please check our calendar for specific dates.</p>
+        <section id="login">
+            <div class="auth-container">
+                <div class="auth-tabs">
+                    <button class="auth-tab active" onclick="showTab('login')">Login</button>
+                    <button class="auth-tab" onclick="showTab('signup')">Sign Up</button>
                 </div>
-                <div class="announcement-card">
-                    <h3>Visa Processing Updates</h3>
-                    <p>New visa processing procedures are now in effect. Applications are processed within 5-7 business days.</p>
-                </div>
-            </div>
-        </section>
 
-        <section id="services">
-            <h2>Our Services</h2>
-            <div class="services-grid">
-                <div class="service-card">
-                    <img src="visa-icon.png" alt="Visa Services">
-                    <h3>Visa Services</h3>
-                    <p>Tourist, business, and student visa processing</p>
-                    <a href="#" class="btn">Learn More</a>
-                </div>
-                <div class="service-card">
-                    <img src="passport-icon.png" alt="Passport Services">
-                    <h3>Passport Services</h3>
-                    <p>Passport renewal and emergency travel documents</p>
-                    <a href="#" class="btn">Learn More</a>
-                </div>
-                <div class="service-card">
-                    <img src="document-icon.png" alt="Document Services">
-                    <h3>Document Authentication</h3>
-                    <p>Legal document verification and certification</p>
-                    <a href="#" class="btn">Learn More</a>
-                </div>
-            </div>
-        </section>
 
-        <section id="about">
-            <div class="about-container">
-                <h2>About Our Embassy</h2>
-                <div class="mission-statement">
-                    <h3>Our Mission</h3>
-                    <p>To foster cultural understanding and strengthen diplomatic relations between Kurdistan, Armenia, and Germany while serving our citizens abroad.</p>
-                </div>
-                <div class="embassy-info">
-                    <div class="info-card">
-                        <h3>Working Hours</h3>
-                        <p>Monday - Friday: 9:00 AM - 5:00 PM</p>
-                        <p>Saturday - Sunday: Closed</p>
+                <!-- Login Form -->
+                <form id="loginForm" onsubmit="authenticate(event)">
+                    <h2>Login</h2>
+                    <div>
+                        <label for="loginUsername">Username:</label>
+                        <input type="text" id="loginUsername" name="username" required>
                     </div>
-                    <div class="info-card">
-                        <h3>Contact Information</h3>
-                        <p>Emergency: +1 234 567 999</p>
-                        <p>Email: info@embassy.org</p>
+                    <div>
+                        <label for="loginPassword">Password:</label>
+                        <input type="password" id="loginPassword" name="password" required>
                     </div>
-                </div>
-            </div>
-        </section>
+                    <div class="forgot-password">
+                        <a href="#" onclick="showForgotPassword()">Forgot Password?</a>
+                    </div>
+                    <button type="submit">Login</button>
+                </form>
 
-        <section id="contact">
-            <!-- Add content for the contact section -->
+                <!-- Signup Form -->
+                <form id="signupForm" onsubmit="signup(event)" style="display: none;">
+                    <h2>Sign Up</h2>
+                    <div>
+                        <label for="signupUsername">Username:</label>
+                        <input type="text" id="signupUsername" name="username" required>
+                    </div>
+                    <div>
+                        <label for="signupPassword">Password:</label>
+                        <input type="password" id="signupPassword" name="password" required>
+                    </div>
+                    <div>
+                        <label for="confirmPassword">Confirm Password:</label>
+                        <input type="password" id="confirmPassword" name="confirmPassword" required>
+                    </div>
+                    <button type="submit">Sign Up</button>
+                </form>
+
+                <!-- Forgot Password Form -->
+                <form id="forgotPasswordForm" style="display: none;" onsubmit="recoverPassword(event)">
+                    <h2>Password Recovery</h2>
+                    <div>
+                        <label for="recoveryEmail">Email Address:</label>
+                        <input type="email" id="recoveryEmail" name="email" required>
+                    </div>
+                    <button type="submit">Reset Password</button>
+                    <button type="button" onclick="showTab('login')">Back to Login</button>
+                </form>
+            </div>
         </section>
     </main>
 
     <footer>
         <div class="footer-content">
             <div class="footer-section">
-                <h4>Contact Us</h4>
-                <p>Email: info@embassy.org</p>
-                <p>Phone: +1 234 567 890</p>
+                <h4>Working Hours</h4>
+                <p>Monday - Friday: 9:00 - 17:00</p>
+                <p>Saturday - Sunday: Closed</p>
             </div>
             <div class="footer-section">
-                <h4>Quick Links</h4>
-                <ul>
-                    <li><a href="#home">Home</a></li>
-                    <li><a href="#services">Services</a></li>
-                    <li><a href="#about">About</a></li>
-                </ul>
+                <h4>Emergency Contact</h4>
+                <p>24/7 Hotline: +1 234 567 999</p>
+            </div>
+            <div class="footer-section">
+                <h4>Social Media</h4>
+                <div class="social-links">
+                    <a href="#">Twitter</a>
+                    <a href="#">Facebook</a>
+                    <a href="#">LinkedIn</a>
+                </div>
             </div>
         </div>
         <div class="footer-bottom">
@@ -125,13 +116,6 @@
     </footer>
 
     <script src="auth.js"></script>
-    <script src="translations.js"></script>
-    <script src="language.js"></script>
-    <script>
-        // Check authentication before loading page
-        if (!localStorage.getItem('isAuthenticated')) {
-            window.location.href = 'login.html';
-        }
-    </script>
 </body>
+
 </html>
