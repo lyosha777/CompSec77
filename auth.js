@@ -1,10 +1,3 @@
-document.addEventListener('DOMContentLoaded', () => {
-    const isAuthenticated = localStorage.getItem('isAuthenticated');
-    if (!isAuthenticated && window.location.pathname === '/profile.html') {
-        window.location.replace('login.html');
-    }
-});
-
 // Function to show/hide login/signup forms
 function showTab(tabName) {
     const loginForm = document.getElementById('loginForm');
@@ -102,11 +95,8 @@ async function signup(event) {
         const data = await response.json();
         
         if (response.ok) {
-            // Generate and display recovery codes immediately after successful signup
-            const recoveryCodes = await generateRecoveryCodes();
-            displayRecoveryCodes(recoveryCodes);
-            alert('Account created successfully! Please save your recovery codes securely.');
-            window.location.replace('login.html');
+            alert('Account created successfully! Please log in.');
+            showTab('login');
         } else {
             alert(data.error || 'Error creating account');
         }
@@ -118,9 +108,8 @@ async function signup(event) {
 
 // Add this function
 function logout() {
-    localStorage.removeItem('isAuthenticated');
-    localStorage.removeItem('authToken');
     localStorage.removeItem('isAdminAuthenticated');
+    localStorage.removeItem('username');
     window.location.replace('login.html');
 }
 
@@ -139,63 +128,30 @@ function showForgotPassword() {
 async function recoverPassword(event) {
     event.preventDefault();
     
-    const username = document.getElementById('recoveryUsername').value;
-    const recoveryCode = document.getElementById('recoveryCode').value;
-    const newPassword = document.getElementById('newPassword').value;
-    const confirmNewPassword = document.getElementById('confirmNewPassword').value;
-
-    if (newPassword !== confirmNewPassword) {
-        alert('New passwords do not match');
+    const email = document.getElementById('recoveryEmail').value;
+    
+    if (!email) {
+        alert('Please enter your email address');
         return;
     }
-
-    const { isValid, requirements } = validatePassword(newPassword);
-    if (!isValid) {
-        let errorMessage = 'New password must have:\n';
-        if (!requirements.minLength) errorMessage += '- Minimum 10 characters\n';
-        if (!requirements.hasUpperCase) errorMessage += '- At least one uppercase letter\n';
-        if (!requirements.hasLowerCase) errorMessage += '- At least one lowercase letter\n';
-        if (!requirements.hasSpecialChar) errorMessage += '- At least one special character\n';
-        if (!requirements.hasNumber) errorMessage += '- At least one number\n';
-        if (!requirements.noCommonPatterns) errorMessage += '- No common patterns\n';
-        if (!requirements.noRepeatingChars) errorMessage += '- No character repeated more than twice\n';
-        if (!requirements.hasMinimumUniqueChars) errorMessage += '- At least 8 unique characters\n';
-        alert(errorMessage);
-        return;
-    }
-
-    try {
-        const response = await fetch('/recover-password', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                username,
-                recoveryCode,
-                newPassword
-            })
-        });
-
-        const data = await response.json();
-        
-        if (response.ok) {
-            alert('Password reset successfully! Please login with your new password.');
-            window.location.replace('login.html');
-        } else {
-            alert(data.error || 'Invalid recovery code or username');
-        }
-    } catch (error) {
-        console.error('Password recovery error:', error);
-        alert('Error during password recovery. Please try again.');
-    }
+    
+    // Simulate sending recovery email
+    alert('Password reset instructions have been sent to your email address');
+    
+    // Return to login form
+    showTab('login');
 }
 
 async function adminAuthenticate(event) {
     event.preventDefault();
 
-    const username = document.getElementById('adminUsername').value;
-    const password = document.getElementById('adminPassword').value;
+    const username = document.getElementById('admin-username').value;
+    const password = document.getElementById('admin-password').value;
+
+    if (!username.startsWith('AD')) {
+        alert('Admin usernames must start with "AD"');
+        return;
+    }
 
     try {
         const response = await fetch('/admin-login', {

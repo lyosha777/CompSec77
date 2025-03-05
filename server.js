@@ -151,7 +151,7 @@ function generateRecoveryCodes(count) {
 
 // Signup endpoint
 app.post('/signup', signupLimiter, async (req, res) => {
-    const { username, password, securityQuestion, securityAnswer } = req.body;
+    const { username, password } = req.body;
     
     // Validate password on server side
     const { isValid, requirements } = validatePassword(password);
@@ -173,13 +173,10 @@ app.post('/signup', signupLimiter, async (req, res) => {
         // Hash password
         const hashedPassword = await bcrypt.hash(password, saltRounds);
 
-        // Generate recovery codes for the new user
-        const recoveryCodes = generateRecoveryCodes(5);
-
-        // Insert new user with hashed password and recovery codes
+        // Insert new user with hashed password
         await db.execute(
-            'INSERT INTO users (username, password, security_question, security_answer, recovery_codes) VALUES (?, ?, ?, ?, ?)',
-            [username, hashedPassword, securityQuestion, securityAnswer, JSON.stringify(recoveryCodes)]
+            'INSERT INTO users (username, password) VALUES (?, ?)',
+            [username, hashedPassword]
         );
 
         res.json({ message: 'Signup successful' });
@@ -225,43 +222,6 @@ app.post('/login', loginRateLimiter, async (req, res) => {
     }
 });
 
-// Password recovery endpoint
-app.post('/recover-password', passwordRecoveryLimiter, async (req, res) => {
-    const { username, recoveryCode, newPassword } = req.body;
-
-    try {
-        const [users] = await db.execute(
-            'SELECT * FROM users WHERE username = ?',
-            [username]
-        );
-
-        if (users.length > 0) {
-            const user = users[0];
-            const recoveryCodes = JSON.parse(user.recovery_codes);
-
-            if (recoveryCodes.includes(recoveryCode)) {
-                // Hash the new password
-                const hashedPassword = await bcrypt.hash(newPassword, saltRounds);
-
-                // Update the password and remove the used recovery code
-                await db.execute(
-                    'UPDATE users SET password = ?, recovery_codes = ? WHERE username = ?',
-                    [hashedPassword, JSON.stringify(recoveryCodes.filter(code => code !== recoveryCode)), username]
-                );
-
-                res.json({ message: 'Password updated successfully' });
-            } else {
-                res.status(401).json({ error: 'Invalid recovery code' });
-            }
-        } else {
-            res.status(401).json({ error: 'Invalid username' });
-        }
-    } catch (error) {
-        console.error('Recovery error:', error);
-        res.status(500).json({ error: 'Error during password recovery' });
-    }
-});
-
 // Generate new recovery codes endpoint
 app.post('/generate-recovery-codes', async (req, res) => {
     const { username } = req.body;
@@ -297,13 +257,19 @@ app.post('/admin-login', async (req, res) => {
 
     try {
         const [users] = await db.execute(
-            'SELECT * FROM users WHERE username = ? AND password = ?',
-            [username, password]
+            'SELECT * FROM users WHERE username = ?',
+            [username]
         );
 
         if (users.length > 0) {
-            req.session.isAdminAuthenticated = true;
-            res.json({ success: true, message: 'Admin login successful' });
+            const match = await bcrypt.compare(password, users[0].password);
+            if (match) {
+                req.session.isAdminAuthenticated = true;
+                req.session.username = username;
+                res.json({ success: true, message: 'Admin login successful' });
+            } else {
+                res.status(401).json({ error: 'Invalid admin credentials' });
+            }
         } else {
             res.status(401).json({ error: 'Invalid admin credentials' });
         }
@@ -316,4 +282,4 @@ app.post('/admin-login', async (req, res) => {
 // Listen on all network interfaces
 app.listen(port, '0.0.0.0', () => {
     console.log(`Server running at http://0.0.0.0:${port}`);
-}); 
+});
