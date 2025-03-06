@@ -6,6 +6,20 @@ const db = require('./db');
 const app = express();
 const port = 3000;
 
+// Add this near the top with other requires
+const mysql = require('mysql2/promise');
+
+// Update the database connection pool
+const pool = mysql.createPool({
+    host: process.env.DB_HOST || 'localhost',
+    user: 'root',
+    password: '', // Add your database password here
+    database: 'embassy_db',
+    waitForConnections: true,
+    connectionLimit: 10,
+    queueLimit: 0
+});
+
 // Add session middleware before other middleware
 app.use(session({
     secret: 'your-secret-key',
@@ -53,31 +67,54 @@ app.use((err, req, res, next) => {
     next(err);
 });
 
+// Add this before your routes to ensure the users table exists
+async function initializeDatabase() {
+    try {
+        await pool.execute(`
+            CREATE TABLE IF NOT EXISTS users (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                username VARCHAR(255) UNIQUE NOT NULL,
+                password VARCHAR(255) NOT NULL,
+                security_question VARCHAR(255),
+                security_answer VARCHAR(255),
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+        `);
+        console.log('Database initialized successfully');
+    } catch (error) {
+        console.error('Database initialization error:', error);
+    }
+}
+
 // Signup endpoint
 app.post('/signup', async (req, res) => {
     const { username, password, securityQuestion, securityAnswer } = req.body;
     
     try {
         // Check if username exists
-        const [users] = await db.execute(
+        const [existingUsers] = await pool.execute(
             'SELECT username FROM users WHERE username = ?', 
             [username]
         );
 
-        if (users.length > 0) {
+        if (existingUsers.length > 0) {
             return res.status(400).json({ error: 'Username already exists' });
         }
 
         // Insert new user
-        await db.execute(
+        await pool.execute(
             'INSERT INTO users (username, password, security_question, security_answer) VALUES (?, ?, ?, ?)',
             [username, password, securityQuestion, securityAnswer]
         );
 
-        res.json({ message: 'Signup successful' });
+        console.log('User created successfully:', username);
+        res.status(201).json({ message: 'Signup successful' });
     } catch (error) {
         console.error('Signup error:', error);
-        res.status(500).json({ error: 'Error during signup' });
+        res.status(500).json({ 
+            error: 'Error during signup',
+            details: error.message 
+        });
     }
 });
 
@@ -146,7 +183,10 @@ app.get('/admin', (req, res) => {
     res.sendFile(path.join(__dirname, 'admin.html'));
 });
 
+// Call initializeDatabase when the server starts
+initializeDatabase().catch(console.error);
+
 // Listen on all network interfaces
 app.listen(port, '0.0.0.0', () => {
     console.log(`Server running at http://0.0.0.0:${port}`);
-}); 
+});
