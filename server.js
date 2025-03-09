@@ -8,6 +8,16 @@ const saltRounds = 12;
 const app = express();
 const port = 3000;
 const rateLimit = require('express-rate-limit');
+const { logSecurityEvent, getLogs } = require('./utils/logger');
+
+// Log server start
+logSecurityEvent(
+    'SERVER_START',
+    'SYSTEM',
+    'Server initialized',
+    'info',
+    { ip: '127.0.0.1', connection: { remoteAddress: '127.0.0.1' } }
+);
 
 // Add session middleware before other middleware
 app.use(session({
@@ -201,6 +211,7 @@ app.post('/login', loginRateLimiter, async (req, res) => {
             const match = await bcrypt.compare(password, users[0].password);
             
             if (match) {
+                logSecurityEvent('LOGIN_SUCCESS', username, 'Successful login attempt', 'info', req);
                 const token = Math.random().toString(36).substring(7);
                 req.session.isAuthenticated = true;
                 req.session.username = username;
@@ -211,12 +222,14 @@ app.post('/login', loginRateLimiter, async (req, res) => {
                     message: 'Login successful'
                 });
             } else {
+                logSecurityEvent('LOGIN_FAILED', username, 'Failed login attempt', 'warning', req);
                 res.status(401).json({ error: 'Invalid credentials' });
             }
         } else {
             res.status(401).json({ error: 'Invalid credentials' });
         }
     } catch (error) {
+        logSecurityEvent('LOGIN_ERROR', username, 'Error during login: ' + error.message, 'high', req);
         console.error('Login error:', error);
         res.status(500).json({ error: 'Error during login' });
     }
@@ -247,11 +260,12 @@ app.get('/admin', (req, res) => {
 });
 
 // Admin login endpoint
-app.post('/admin-login', async (req, res) => {
+app.post('/admin-login', loginLimiter, async (req, res) => {
     const { username, password } = req.body;
 
     // Check if the username starts with "AD"
     if (!username.startsWith('AD')) {
+        logSecurityEvent('ADMIN_LOGIN_FAILED', username, 'Non-admin username attempted admin login', 'high', req);
         return res.status(401).json({ error: 'Unauthorized access' });
     }
 
@@ -264,6 +278,7 @@ app.post('/admin-login', async (req, res) => {
         if (users.length > 0) {
             const match = await bcrypt.compare(password, users[0].password);
             if (match) {
+                logSecurityEvent('ADMIN_LOGIN_SUCCESS', username, 'Successful admin login attempt', 'info', req);
                 req.session.isAdminAuthenticated = true;
                 req.session.username = username;
                 res.json({ success: true, message: 'Admin login successful' });
@@ -274,6 +289,7 @@ app.post('/admin-login', async (req, res) => {
             res.status(401).json({ error: 'Invalid admin credentials' });
         }
     } catch (error) {
+        logSecurityEvent('ADMIN_LOGIN_ERROR', username, 'Error during admin login: ' + error.message, 'high', req);
         console.error('Admin login error:', error);
         res.status(500).json({ error: 'Error during admin login' });
     }
