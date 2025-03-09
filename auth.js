@@ -154,7 +154,7 @@ async function adminAuthenticate(event) {
     }
 
     try {
-        const response = await fetch('/admin-login', {
+        const response = await fetch('/admin', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
