@@ -45,13 +45,13 @@ This project implements a secure authentication and user management system for t
    ```
 
 4. Configure database connection:
-   Edit `db.js` with your MySQL credentials:
+   Create the `db.json` file with your MySQL credentials in the following format:
    ```javascript
    {
-       host: 'localhost',
-       user: 'your_username',
-       password: 'your_password',
-       database: 'security_db'
+    "username":"your Mysql Username",
+    "password":"your Mysql password",
+    "ip":"The Mysql ip address ",
+    "dbname":"your database name"
    }
    ```
 
@@ -64,7 +64,6 @@ This project implements a secure authentication and user management system for t
 
 2. Access the application:
    - Main portal: `http://localhost:3000`
-   - Admin login: `http://localhost:3000/admin-login.html`
 
 ## Security Features
 
@@ -84,7 +83,7 @@ This project implements a secure authentication and user management system for t
 - Password recovery: 3 attempts per hour
 
 ### Admin Access
-- Admin usernames must start with "AD"
+- Admin usernames must sta
 - Separate authentication flow for admin users
 - Protected admin dashboard
 
@@ -92,7 +91,6 @@ This project implements a secure authentication and user management system for t
 
 ### Authentication
 - `POST /signup` - User registration
-- `POST /login` - User login
 - `POST /admin-login` - Admin login
 - `POST /generate-recovery-codes` - Generate password recovery codes
 
@@ -134,11 +132,6 @@ Please read CONTRIBUTING.md for details on our code of conduct and the process f
 }
 ```
 
-## Environment Variables
-The application uses the following environment variables:
-- `DB_HOST` - Database host (default: localhost)
-- `PORT` - Server port (default: 3000)
-
 ## Error Handling
 The application includes comprehensive error handling for:
 - Database connection issues
@@ -146,24 +139,11 @@ The application includes comprehensive error handling for:
 - Rate limiting violations
 - Invalid input validation
 
-## Multilingual Support
-The application supports multiple languages through the translations.js file:
-- English (default)
-- Kurdish
-- Armenian
-- German
-
 ## Testing
 To run tests:
 ```bash
 npm test
 ```
-
-## License
-This project is licensed under the ISC License - see the LICENSE file for details.
-
-## Support
-For support, please create an issue in the repository or contact the development team.
 
 ## Authors
 - Group 77 - Kurdish Armenian German Embassy Project Team
