@@ -12,9 +12,9 @@ const mysql = require('mysql2/promise');
 // Update the database connection pool
 const pool = mysql.createPool({
     host: process.env.DB_HOST || 'localhost',
-    user: 'root',
-    password: '', // Add your database password here
-    database: 'embassy_db',
+    user: 'joris',
+    password: 'joris', // Add your database password here
+    database: 'test_db',
     waitForConnections: true,
     connectionLimit: 10,
     queueLimit: 0
