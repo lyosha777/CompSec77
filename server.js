@@ -90,7 +90,7 @@ const authCheck = (req, res, next) => {
     if (req.path.startsWith('/admin')) {
         const isAuthenticated = req.session && req.session.isAuthenticated;
         const username = req.session.username;
-        if (!isAuthenticated || !username || !username.startsWith('AD')) {
+        if (!isAuthenticated || !username || username != 'admin') {
             return res.redirect('/login.html');
         }
     } else {
@@ -218,7 +218,7 @@ app.post('/login', loginRateLimiter, async (req, res) => {
                 res.json({ 
                     success: true, 
                     token: token,
-                    isAdmin: username.startsWith('AD'),
+                    isAdmin: username == 'admin',
                     message: 'Login successful'
                 });
             } else {
@@ -264,7 +264,7 @@ app.post('/admin-login', loginLimiter, async (req, res) => {
     const { username, password } = req.body;
 
     // Check if the username starts with "AD"
-    if (!username.startsWith('AD')) {
+    if (username != 'admin') {
         logSecurityEvent('ADMIN_LOGIN_FAILED', username, 'Non-admin username attempted admin login', 'high', req);
         return res.status(401).json({ error: 'Unauthorized access' });
     }

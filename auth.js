@@ -148,7 +148,7 @@ async function adminAuthenticate(event) {
     const username = document.getElementById('admin-username').value;
     const password = document.getElementById('admin-password').value;
 
-    if (!username.startsWith('AD')) {
+    if (username != 'admin') {
         alert('Admin usernames must start with "AD"');
         return;
     }
